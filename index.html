@@ -3,35 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Card Generator v3.0 - SDN Senden 2</title>
+    <title>Smart Card Generator v4.0 - SDN Senden 2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         
-        /* Layout khusus cetak printer */
+        /* Ukuran Kartu Presisi 10 x 7 cm */
+        .card-size {
+            width: 100mm;
+            height: 70mm;
+            max-width: 100mm;
+            max-height: 70mm;
+        }
+
+        /* Layout khusus cetak printer (Landscape Otomatis) */
         @media print {
             body { background-color: #fff; padding: 0; margin: 0; }
             .no-print { display: none !important; }
             .page-break { page-break-after: always; display: grid !important; }
             
-            /* Deteksi Dinamis Ukuran Kertas via CSS */
-            .paper-a4 { height: 297mm; max-height: 297mm; }
-            .paper-f4 { height: 330mm; max-height: 330mm; }
-            
-            @page { margin: 0; }
+            /* Setting halaman otomatis mendatar (Landscape) */
+            @page { 
+                size: landscape; 
+                margin: 5mm; 
+            }
             .card-container { box-shadow: none !important; }
         }
 
-        /* Garis bantu potong samar di luar area kartu */
+        /* Garis pembatas potong aman (Hanya muncul di layar/Aplikasi, tidak ikut keprint) */
         .cutting-line-v { border-left: 1px dashed #cbd5e1; height: 100%; position: absolute; left: 50%; top: 0; transform: translateX(-50%); }
+        .cutting-line-v-3t { border-left: 1px dashed #cbd5e1; height: 100%; position: absolute; left: 33.33%; top: 0; }
+        .cutting-line-v-3r { border-left: 1px dashed #cbd5e1; height: 100%; position: absolute; left: 66.66%; top: 0; }
         .cutting-line-h { border-top: 1px dashed #cbd5e1; width: 100%; position: absolute; top: 50%; left: 0; transform: translateY(-50%); }
     </style>
 </head>
 <body class="p-4 md:p-8 min-h-screen pb-24">
 
-    <div class="no-print max-w-4xl mx-auto bg-white border border-slate-200 rounded-2xl p-6 shadow-sm mb-8 relative">
+    <div class="no-print max-w-5xl mx-auto bg-white border border-slate-200 rounded-2xl p-6 shadow-sm mb-8">
         
         <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
             <div class="flex items-center gap-3">
@@ -39,24 +49,10 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zm4.5 5a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1zM6 9.5a.5.5 0 0 0 .5-.5h3a.5.5 0 0 0 0 1h-3a.5.5 0 0 0-.5-.5m.5 2.5a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1zM4.5 4a.5.5 0 0 0 0 1h7a.5.5 0 0 0 0-1z"/></svg>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold text-slate-950 tracking-tight">Smart Card Generator (SDN Senden 2 Final)</h1>
-                    <p class="text-xs text-slate-500">Aplikasi cetak kartu ujian dengan pembatas potong aman & QR Code otomatis.</p>
+                    <h1 class="text-xl font-bold text-slate-950 tracking-tight">Smart Card Generator v4.0 (Landscape Hemat Kertas)</h1>
+                    <p class="text-xs text-slate-500">Ukuran kartu presisi 10x7 cm. Posisi Foto & TTD siap stempel basah.</p>
                 </div>
             </div>
-            <button onclick="toggleHelp()" class="text-slate-400 hover:text-slate-900 transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.496 6.033h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286a.237.237 0 0 0 .241.247m2.325 6.443c.61 0 1.029-.394 1.029-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94 0 .533.425.927 1.01.927"/></svg>
-            </button>
-        </div>
-
-        <div id="helpModal" class="hidden absolute top-20 right-6 left-6 bg-slate-900 text-slate-100 p-5 rounded-xl shadow-xl z-50 text-xs border border-slate-700">
-            <div class="flex justify-between items-center mb-2 border-b border-slate-700 pb-2">
-                <span class="font-bold uppercase tracking-wider text-amber-400">💡 Panduan Singkat Sistem</span>
-                <button onclick="toggleHelp()" class="text-slate-400 hover:text-white font-bold">✕</button>
-            </div>
-            <ul class="list-disc pl-4 space-y-1 text-slate-300">
-                <li><strong class="text-white">QR Code Otomatis:</strong> Sistem akan mengubah data NISN secara otomatis menjadi QR Code digital di pojok kartu tanpa perlu upload gambar satu-per-satu.</li>
-                <li><strong class="text-white">Jarak Potong:</strong> Di antara kartu kini sengaja diberi ruang renggang 1 cm lengkap dengan garis putus-putus samar di tengahnya agar memotong jadi super lurus.</li>
-            </ul>
         </div>
 
         <div class="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-xl">
@@ -108,7 +104,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-semibold text-slate-500 mb-1">Tema Warna Pinggiran (SD Pastel)</label>
+                    <label class="block text-[10px] font-semibold text-slate-500 mb-1">Tema Warna Pinggiran</label>
                     <select id="setTema" class="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:border-slate-950">
                         <option value="toska">Hijau Toska (Fresh)</option>
                         <option value="sky">Biru Langit (Calm)</option>
@@ -116,17 +112,10 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-semibold text-slate-500 mb-1">Jenis Kertas Printer</label>
-                    <select id="setKertas" class="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:border-slate-950">
-                        <option value="a4">Kertas A4 Standard</option>
-                        <option value="f4">Kertas F4 / Folio Indonesia</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-[10px] font-semibold text-slate-500 mb-1">Jumlah Kartu Per Lembar</label>
+                    <label class="block text-[10px] font-semibold text-slate-500 mb-1">Jumlah Kartu & Susunan Per Lembar (Landscape)</label>
                     <select id="setGrid" class="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:border-slate-950">
-                        <option value="4">4 Kartu (2 Baris, 2 Kolom)</option>
-                        <option value="2">2 Kartu Vertikal</option>
+                        <option value="8">8 Kartu (Sangat Hemat - 2 Baris, 4 Kolom)</option>
+                        <option value="6">6 Kartu (Sangat Longgar - 2 Baris, 3 Kolom)</option>
                     </select>
                 </div>
             </div>
@@ -135,7 +124,7 @@
                 <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">👁️ Sembunyikan / Munculkan Komponen Kartu</label>
                 <div class="flex flex-wrap gap-4 text-xs text-slate-700">
                     <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chkShowFoto" checked class="rounded border-slate-300"> Foto Siswa</label>
-                    <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chkShowTtd" checked class="rounded border-slate-300"> TTD/Stempel KS</label>
+                    <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chkShowTtd" checked class="rounded border-slate-300"> TTD & Stempel KS</label>
                     <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chkShowNoPeserta" checked class="rounded border-slate-300"> Nomor Peserta</label>
                     <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chkShowRuang" checked class="rounded border-slate-300"> Informasi Ruang</label>
                 </div>
@@ -149,21 +138,10 @@
         </div>
 
         <div id="configSection" class="hidden mb-4 p-4 bg-slate-900 text-white rounded-xl border border-slate-800">
-            <label class="block text-xs font-semibold text-amber-400 uppercase tracking-wider mb-3">Langkah 2: Centang Kolom yang Menyusun Data TTL (Tempat & Tanggal Lahir)</label>
-            <div id="checkboxContainer" class="flex flex-wrap gap-3 text-xs text-slate-200 mb-4">
-                </div>
+            <label class="block text-xs font-semibold text-amber-400 uppercase tracking-wider mb-3">Langkah 2: Centang Kolom Penyusun Data TTL</label>
+            <div id="checkboxContainer" class="flex flex-wrap gap-3 text-xs text-slate-200 mb-4"></div>
             
-            <div id="progressBarContainer" class="hidden mt-2 pt-2 border-t border-slate-800">
-                <div class="flex justify-between text-[11px] text-slate-400 mb-1">
-                    <span>Memproses, Merapikan Data & Membuat QR Code...</span>
-                    <span id="progressText">0%</span>
-                </div>
-                <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                    <div id="progressBar" class="bg-gradient-to-r from-amber-400 to-emerald-400 h-1.5 transition-all duration-200" style="width: 0%"></div>
-                </div>
-            </div>
-
-            <button onclick="triggerGenerate()" id="btnGenerate" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-3 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 uppercase tracking-wider">
+            <button onclick="generateKartu()" id="btnGenerate" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-3 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 uppercase tracking-wider">
                 Bikin & Susun Kartu Otomatis ✨
             </button>
         </div>
@@ -184,17 +162,12 @@
 
     <div id="printButtonContainer" class="no-print hidden flex justify-center mb-6">
         <button onclick="window.print()" class="bg-slate-900 hover:bg-slate-950 text-white font-bold px-6 py-3 rounded-xl shadow-md transition-all flex items-center gap-2 text-xs uppercase tracking-wider">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4zm1 5a1 1 0 1 1 2 0 1 1 0 0 1-2 0m7 0a1 1 0 1 1 2 0 1 1 0 0 1-2 0M5 10v3a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-3z"/></svg>
-            Cetak Dokumen Sekarang
+            Cetak Dokumen Sekarang (Gunakan Mode Landscape)
         </button>
     </div>
 
-    <div id="printArea" class="max-w-4xl mx-auto">
+    <div id="printArea" class="mx-auto flex flex-col items-center">
         </div>
-
-    <button id="backToTop" onclick="scrollToTop()" class="no-print bg-slate-900 text-white p-3 rounded-full shadow-lg hover:bg-slate-800 transition-all">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 .5 .5"/></svg>
-    </button>
 
     <script>
         let headers = [];
@@ -212,7 +185,6 @@
                 document.getElementById('setWatermarkFile').value = localStorage.getItem('setWatermarkFile');
                 document.getElementById('setFotoOpt').value = localStorage.getItem('setFotoOpt');
                 document.getElementById('setTema').value = localStorage.getItem('setTema');
-                document.getElementById('setKertas').value = localStorage.getItem('setKertas');
                 document.getElementById('setGrid').value = localStorage.getItem('setGrid');
                 document.getElementById('chkShowFoto').checked = localStorage.getItem('chkShowFoto') === 'true';
                 document.getElementById('chkShowTtd').checked = localStorage.getItem('chkShowTtd') === 'true';
@@ -232,7 +204,6 @@
             localStorage.setItem('setWatermarkFile', document.getElementById('setWatermarkFile').value);
             localStorage.setItem('setFotoOpt', document.getElementById('setFotoOpt').value);
             localStorage.setItem('setTema', document.getElementById('setTema').value);
-            localStorage.setItem('setKertas', document.getElementById('setKertas').value);
             localStorage.setItem('setGrid', document.getElementById('setGrid').value);
             localStorage.setItem('chkShowFoto', document.getElementById('chkShowFoto').checked);
             localStorage.setItem('chkShowTtd', document.getElementById('chkShowTtd').checked);
@@ -248,10 +219,6 @@
             }
         }
 
-        function toggleHelp() {
-            document.getElementById('helpModal').classList.toggle('hidden');
-        }
-
         function prosesExcel() {
             const rawText = document.getElementById('excelInput').value.trim();
             if (!rawText) return alert('Silahkan paste kolom data dari Excel terlebih dahulu!');
@@ -259,7 +226,6 @@
             const rows = rawText.split('\n').map(row => row.split('\t'));
             headers = rows[0].map(h => h.trim());
             dataSiswa = [];
-
             let setRuangUnik = new Set();
 
             for (let i = 1; i < rows.length; i++) {
@@ -269,13 +235,11 @@
                         siswa[header] = rows[i][index] ? rows[i][index].trim() : '';
                     });
                     dataSiswa.push(siswa);
-                    
                     let r = siswa['Ruang'] || siswa['RUANG'] || siswa['Kelas'] || '';
                     if(r) setRuangUnik.add(r);
                 }
             }
 
-            // Isi dropdown filter ruangan otomatis
             const selectFilter = document.getElementById('selectFilterRuang');
             selectFilter.innerHTML = '<option value="ALL">Tampilkan Semua Data</option>';
             setRuangUnik.forEach(ruang => {
@@ -287,13 +251,12 @@
             headers.forEach(header => {
                 const isChecked = header.toLowerCase().includes('lahir') ? 'checked' : '';
                 container.innerHTML += `
-                    <label class="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 cursor-pointer hover:bg-slate-700 text-white">
-                        <input type="checkbox" name="kolomGabung" value="${header}" ${isChecked} class="rounded text-amber-400 focus:ring-0">
+                    <label class="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 cursor-pointer text-white">
+                        <input type="checkbox" name="kolomGabung" value="${header}" ${isChecked} class="rounded text-amber-400">
                         <span>${header}</span>
                     </label>
                 `;
             });
-
             document.getElementById('configSection').classList.remove('hidden');
         }
 
@@ -314,25 +277,6 @@
             return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
         }
 
-        function triggerGenerate() {
-            document.getElementById('progressBarContainer').classList.remove('hidden');
-            let progress = 0;
-            const bar = document.getElementById('progressBar');
-            const txt = document.getElementById('progressText');
-            
-            const interval = setInterval(() => {
-                progress += 25;
-                bar.style.width = progress + '%';
-                txt.innerText = progress + '%';
-                if (progress >= 100) {
-                    clearInterval(interval);
-                    generateKartu();
-                    document.getElementById('progressBarContainer').classList.add('hidden');
-                    bar.style.width = '0%';
-                }
-            }, 100);
-        }
-
         function generateKartu() {
             const txtPemda = document.getElementById('setPemda').value;
             const txtSekolah = document.getElementById('setSekolah').value;
@@ -344,7 +288,6 @@
             const txtWatermarkFile = document.getElementById('setWatermarkFile').value;
             const optFoto = document.getElementById('setFotoOpt').value;
             const tema = document.getElementById('setTema').value;
-            const jnsKertas = document.getElementById('setKertas').value;
             const limitGrid = parseInt(document.getElementById('setGrid').value);
 
             const showFoto = document.getElementById('chkShowFoto').checked;
@@ -364,7 +307,6 @@
 
             let currentPageHTML = '';
             let cardsInPage = 0;
-            let pageClass = jnsKertas === 'f4' ? 'paper-f4' : 'paper-a4';
 
             dataSiswa.forEach((siswa, index) => {
                 let gabunganTTL = kolomDipilih.map(kolom => {
@@ -378,91 +320,92 @@
                 let ruangSiswa = siswa['Ruang'] || siswa['RUANG'] || siswa['Kelas'] || '-';
                 let noPeserta = siswa['No Peserta'] || siswa['NO PESERTA'] || siswa['Nomor'] || '-';
 
-                let nameFontSize = namaSiswa.length > 22 ? 'text-[10px] leading-tight' : 'text-[12px] font-bold';
+                // Nama dijamin BOLD & Menyesuaikan panjang karakter
+                let nameFontSize = namaSiswa.length > 22 ? 'text-[10px] font-bold leading-tight' : 'text-[12px] font-bold';
 
-                let logoHTML = `<div class="w-9 h-9 bg-slate-900 text-white rounded-lg flex items-center justify-center text-[9px] font-black shrink-0 text-center leading-none">SDN</div>`;
-                if (txtLogoFile.trim() !== '') logoHTML = `<img src="aset-sekolah/${txtLogoFile}" class="w-9 h-9 object-contain shrink-0" alt="Logo">`;
+                let logoHTML = `<div class="w-9 h-9 bg-slate-900 text-white rounded-lg flex items-center justify-center text-[9px] font-black shrink-0">SDN</div>`;
+                if (txtLogoFile.trim() !== '') logoHTML = `<img src="aset-sekolah/${txtLogoFile}" class="w-9 h-9 object-contain shrink-0">`;
 
                 let watermarkHTML = '';
-                if (txtWatermarkFile.trim() !== '') watermarkHTML = `<img src="aset-sekolah/${txtWatermarkFile}" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-28 h-28 object-contain opacity-[0.05] pointer-events-none" alt="WM">`;
+                if (txtWatermarkFile.trim() !== '') watermarkHTML = `<img src="aset-sekolah/${txtWatermarkFile}" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-24 object-contain opacity-[0.05] pointer-events-none">`;
 
                 let fotoHTML = '';
                 if (showFoto) {
                     if (optFoto === 'digital_nisn' && nisnSiswa !== '-') {
-                        fotoHTML = `<img src="foto-siswa/${nisnSiswa}.jpg" onerror="this.onerror=null; this.src='https://via.placeholder.com/120x140?text=3x4'" class="w-11 h-14 border border-slate-300 object-cover rounded shadow-sm z-10 bg-white">`;
+                        fotoHTML = `<img src="foto-siswa/${nisnSiswa}.jpg" onerror="this.onerror=null; this.src='https://via.placeholder.com/120x140?text=3x4'" class="w-12 h-15 border border-slate-300 object-cover rounded shadow-sm z-10 bg-white ml-2">`;
                     } else {
-                        fotoHTML = `<div class="w-11 h-14 border border-slate-300 bg-slate-50 flex items-center justify-center rounded text-[8px] text-slate-400 font-medium z-10">Foto 3x4</div>`;
+                        fotoHTML = `<div class="w-12 h-15 border border-slate-300 bg-slate-50 flex items-center justify-center rounded text-[8px] text-slate-400 font-bold z-10 ml-2">Foto 3x4</div>`;
                     }
                 }
 
-                let ttdHTML = `<div class="h-5"></div>`;
+                let ttdHTML = `<div class="h-6"></div>`;
                 if (showTtd && txtTtdFile.trim() !== '') {
-                    ttdHTML = `<div class="h-5 relative flex justify-center"><img src="aset-sekolah/${txtTtdFile}" class="absolute -top-3 h-9 object-contain mix-blend-multiply"></div>`;
+                    // Posisi TTD digeser agar pas menimpa foto siswa (stempel basah)
+                    ttdHTML = `<div class="h-6 relative"><img src="aset-sekolah/${txtTtdFile}" class="absolute -top-4 -right-3 h-10 object-contain mix-blend-multiply z-20"></div>`;
                 }
 
-                // MERAKIT TEMPLATE KARTU (Opsi 3: Berwarna, Renggang)
+                // TEMPLATE KARTU LANDSCAPE 10 X 7 CM
                 const kartuHTML = `
-                    <div data-identity="${namaSiswa.toLowerCase()} ${nisnSiswa}" data-ruang="${ruangSiswa.toLowerCase()}" class="card-element bg-white border-2 ${colorSchema.border} rounded-xl p-4 shadow-sm flex flex-col justify-between h-[270px] w-full relative overflow-hidden card-container">
+                    <div data-identity="${namaSiswa.toLowerCase()} ${nisnSiswa}" data-ruang="${ruangSiswa.toLowerCase()}" class="card-element card-size bg-white border-2 ${colorSchema.border} rounded-xl p-3 shadow-sm flex flex-col justify-between relative overflow-hidden card-container">
                         ${watermarkHTML}
                         
-                        <div class="flex items-center gap-2 border-b-2 border-slate-800 pb-1.5 relative z-10">
+                        <div class="flex items-center gap-2 border-b-2 border-slate-800 pb-1 relative z-10">
                             ${logoHTML}
                             <div class="text-center flex-grow">
-                                <h3 class="text-[8px] font-bold uppercase tracking-wider text-slate-500 leading-none">${txtPemda}</h3>
-                                <h2 class="text-[11px] font-extrabold uppercase text-slate-900 leading-tight mt-0.5">${txtSekolah}</h2>
-                                <p class="text-[7.5px] text-slate-400 font-medium leading-none mt-0.5 truncate max-w-[220px] mx-auto">${txtAlamat}</p>
+                                <h3 class="text-[7.5px] font-bold uppercase tracking-wider text-slate-500 leading-none">${txtPemda}</h3>
+                                <h2 class="text-[10.5px] font-extrabold uppercase text-slate-900 leading-tight mt-0.5">${txtSekolah}</h2>
+                                <p class="text-[7px] text-slate-400 font-medium leading-none mt-0.5 truncate max-w-[240px] mx-auto">${txtAlamat}</p>
                             </div>
-                            <div id="qr_${index}" class="w-9 h-9 bg-white p-0.5 border border-slate-200 rounded shrink-0 flex items-center justify-center"></div>
+                            <div id="qr_${index}" class="w-8 h-8 bg-white p-0.5 border border-slate-200 rounded shrink-0 flex items-center justify-center"></div>
                         </div>
 
                         <div class="text-center my-0.5 relative z-10">
-                            <span class="${colorSchema.badge} text-[8px] font-extrabold px-3 py-0.5 rounded-full uppercase tracking-widest border">Kartu Peserta Ujian</span>
+                            <span class="${colorSchema.badge} text-[7.5px] font-extrabold px-3 py-0.5 rounded-full uppercase tracking-widest border">Kartu Peserta Ujian</span>
                         </div>
 
-                        <div class="grid grid-cols-12 gap-x-1 gap-y-0.5 text-[11px] text-slate-700 flex-grow px-1 mt-1 relative z-10">
+                        <div class="grid grid-cols-12 gap-x-1 gap-y-0.5 text-[10.5px] text-slate-700 flex-grow px-1 mt-0.5 relative z-10">
                             ${showNoPeserta ? `
                                 <div class="col-span-3 font-medium text-slate-400">No. Peserta</div>
                                 <div class="col-span-9 font-mono font-bold text-red-600">: ${noPeserta}</div>
                             ` : ''}
 
                             <div class="col-span-3 font-medium text-slate-400">Nama</div>
-                            <div class="col-span-9 ${nameFontSize} text-slate-900 max-w-full truncate">: ${namaSiswa}</div>
+                            <div class="col-span-9 ${nameFontSize} text-slate-900 truncate">: ${namaSiswa}</div>
 
-                            <div class="col-span-3 font-medium text-slate-400">NISN / NIS</div>
-                            <div class="col-span-9">: ${nisnSiswa}</div>
+                            <div class="col-span-3 font-medium text-slate-400">NISN</div>
+                            <div class="col-span-9 font-semibold">: ${nisnSiswa}</div>
 
                             <div class="col-span-3 font-medium text-slate-400">TTL</div>
                             <div class="col-span-9 truncate">: ${gabunganTTL}</div>
 
                             ${showRuang ? `
                                 <div class="col-span-3 font-medium text-slate-400">Ruang</div>
-                                <div class="col-span-9 font-semibold ${colorSchema.textRuang}">: ${ruangSiswa}</div>
+                                <div class="col-span-9 font-bold ${colorSchema.textRuang}">: ${ruangSiswa}</div>
                             ` : ''}
                         </div>
 
-                        <div class="flex justify-between items-end mt-1 pt-1 border-t border-dashed border-slate-200 relative z-10">
-                            ${fotoHTML}
-                            <div class="text-center text-[9px] text-slate-800 pr-1">
-                                <p class="text-[7.5px] text-slate-400">Kepala Sekolah,</p>
+                        <div class="flex justify-between items-end mt-0.5 pt-1 border-t border-slate-100 relative z-10">
+                            <div class="text-left text-[8.5px] text-slate-800 flex-grow max-w-[140px]">
+                                <p class="text-[7px] text-slate-400 leading-none">Kepala Sekolah,</p>
                                 ${ttdHTML}
-                                <p class="font-bold underline leading-none">${toTitleCase(txtKepsek)}</p>
-                                <p class="text-[7px] text-slate-400 mt-0.5">NIP. ${txtNip}</p>
+                                <p class="font-bold underline leading-none truncate">${toTitleCase(txtKepsek)}</p>
+                                <p class="text-[6.5px] text-slate-400 mt-0.5">NIP. ${txtNip}</p>
                             </div>
+                            ${fotoHTML}
                         </div>
                     </div>
                 `;
 
-                // Buka wadah halaman baru (Grid Berjarak dengan Garis Gunting)
+                // Buka wadah halaman baru (Grid Otomatis Berjarak 1cm)
                 if (cardsInPage === 0) {
-                    let gridCols = limitGrid === 2 ? 'grid-cols-1 max-w-md mx-auto py-10' : 'grid-cols-2';
-                    currentPageHTML = `<div class="page-container ${pageClass} page-break relative grid ${gridCols} gap-8 p-8 items-center content-center bg-white border border-slate-200 shadow-sm mb-8 rounded-2xl">
-                                        ${limitGrid === 4 ? '<div class="no-print cutting-line-v"></div><div class="no-print cutting-line-h"></div>' : ''}`;
+                    let gridLayoutClass = limitGrid === 6 ? 'grid-cols-3 gap-x-6 gap-y-8 p-6' : 'grid-cols-4 gap-x-4 gap-y-8 p-4';
+                    currentPageHTML = `<div class="page-container page-break relative grid ${gridLayoutClass} bg-white border border-slate-200 shadow-sm mb-8 rounded-2xl w-[297mm]">
+                                        ${limitGrid === 8 ? '<div class="no-print cutting-line-v"></div><div class="no-print cutting-line-h"></div>' : '<div class="no-print cutting-line-v-3t"></div><div class="no-print cutting-line-v-3r"></div><div class="no-print cutting-line-h"></div>'}`;
                 }
 
                 currentPageHTML += kartuHTML;
                 cardsInPage++;
 
-                // Tutup halaman jika kuota lembar terpenuhi ATAU data terakhir
                 if (cardsInPage === limitGrid || index === dataSiswa.length - 1) {
                     currentPageHTML += `</div>`;
                     printArea.innerHTML += currentPageHTML;
@@ -480,8 +423,8 @@
                 if (qrContainer) {
                     new QRCode(qrContainer, {
                         text: `SDN 2 Senden - ${namaSiswa} - ${nisnSiswa} - ${r}`,
-                        width: 32,
-                        height: 32,
+                        width: 28,
+                        height: 28,
                         colorDark : "#0f172a",
                         colorLight : "#ffffff",
                         correctLevel : QRCode.CorrectLevel.M
@@ -493,38 +436,26 @@
             document.getElementById('printButtonContainer').classList.remove('hidden');
         }
 
-        // FILTER GABUNGAN (Deteksi Nama + Dropdown Ruang sekaligus)
         function jalankanFilterGlobal() {
             const searchQuery = document.getElementById('txtSearch').value.toLowerCase().trim();
             const ruangQuery = document.getElementById('selectFilterRuang').value.toLowerCase().trim();
             const cards = document.querySelectorAll('.card-element');
-            const pageContainers = document.querySelectorAll('.page-container');
 
             cards.forEach(card => {
                 const identity = card.getAttribute('data-identity');
                 const ruang = card.getAttribute('data-ruang');
-
                 const matchSearch = identity.includes(searchQuery);
                 const matchRuang = (ruangQuery === 'all' || ruang === ruangQuery);
 
                 if (matchSearch && matchRuang) {
                     card.style.opacity = '1';
                     card.style.pointerEvents = 'auto';
-                    card.style.visibility = 'visible';
                 } else {
-                    card.style.opacity = '0.08'; // Di layar dibuat pudar, saat diprint otomatis rapi
+                    card.style.opacity = '0.08';
                     card.style.pointerEvents = 'none';
                 }
             });
         }
-
-        // Kontrol Button Melayang Back to Top
-        const btt = document.getElementById('backToTop');
-        window.onscroll = function() {
-            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) btt.classList.add('show');
-            else btt.classList.remove('show');
-        };
-        function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
     </script>
 </body>
 </html>
