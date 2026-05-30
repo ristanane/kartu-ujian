@@ -3,147 +3,216 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cetak Kartu Ujian Instan</title>
+    <title>Generator Kartu Ujian Instan</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Font Google modern & clean */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-        }
-
-        /* Aturan Khusus Cetak / Print */
         @media print {
-            body {
-                background-color: #fff;
-            }
-            .no-print {
-                display: none; /* Sembunyikan tombol pas dicetak */
-            }
-            .page-break {
-                page-break-after: always; /* Otomatis potong halaman tiap 4 kartu */
-            }
-            @page {
-                size: A4;
-                margin: 10mm; /* Jarak aman printer */
-            }
+            body { background-color: #fff; p: 0; }
+            .no-print { display: none !important; }
+            .page-break { page-break-after: always; }
+            @page { size: A4; margin: 10mm; }
         }
     </style>
 </head>
-<body class="p-6">
+<body class="p-4 md:p-8">
 
-    <!-- Tombol Cetak (Sembunyi pas diprint) -->
-    <div class="no-print flex justify-center mb-8">
-        <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-950 text-white font-semibold px-6 py-2.5 rounded-lg shadow-sm transition-all flex items-center gap-2 text-sm">
+    <!-- ================= PANEL INPUT (SEMBUNYI SAAT PRINT) ================= -->
+    <div class="no-print max-w-4xl mx-auto bg-white border border-slate-200 rounded-2xl p-6 shadow-sm mb-10">
+        <div class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
+            <div class="p-2 bg-slate-900 text-white rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5z"/><path d="M3 13h10v1H3zm0-2h10v1H3zm0-2h10v1H3zm0-2h10v1H3z"/></svg>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-slate-950">Data Prepper & Cetak Kartu Ujian</h1>
+                <p class="text-xs text-slate-500">Paste data dari Excel, atur kolom gabungan, lalu cetak instan.</p>
+            </div>
+        </div>
+
+        <!-- Langkah 1: Paste Data -->
+        <div class="mb-5">
+            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">Langkah 1: Paste Kolom dari Excel (Sertakan Baris Judul/Header)</label>
+            <textarea id="excelInput" rows="5" class="w-full p-3 border border-slate-300 rounded-xl text-sm font-mono focus:outline-none focus:border-slate-900 transition-all" placeholder="Contoh mencopas dari Excel:&#10;Nama	Tempat Lahir	Tanggal Lahir	NISN&#10;Ahmad	Magelang	20-04-2014	012345&#10;Siti	Sleman		15/05/2014	012346"></textarea>
+            <button onclick="prosesExcel()" class="mt-2 bg-slate-900 hover:bg-slate-950 text-white text-xs font-medium px-4 py-2 rounded-lg transition-all">Muat Kolom Data</button>
+        </div>
+
+        <!-- Langkah 2: Pilihan Centang (Muncul Otomatis) -->
+        <div id="configSection" class="hidden mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-3">Langkah 2: Pilih Kolom untuk Digabungkan menjadi TTL</label>
+            <div id="checkboxContainer" class="flex flex-wrap gap-4 text-sm text-slate-800">
+                <!-- Checkbox diisi via JS -->
+            </div>
+            <button onclick="generateKartu()" class="mt-4 w-full bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold py-2.5 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2">
+                Bikin & Susun Kartu Otomatis ✨
+            </button>
+        </div>
+    </div>
+
+    <!-- Tombol Cetak Global (Hanya muncul kalau kartu sudah jadi) -->
+    <div id="printButtonContainer" class="no-print hidden flex justify-center mb-6">
+        <button onclick="window.print()" class="bg-slate-900 hover:bg-slate-950 text-white font-semibold px-6 py-2.5 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4zm1 5a1 1 0 1 1 2 0 1 1 0 0 1-2 0m7 0a1 1 0 1 1 2 0 1 1 0 0 1-2 0M5 10v3a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-3z"/></svg>
-            Cetak Kartu Ujian
+            Cetak Semua Kartu Sekarang
         </button>
     </div>
 
-    <!-- CONTAINER UTAMA KARTU (Grid 2 Kolom) -->
-    <!-- Setiap 4 kartu, bungkus dalam div 'page-break' ini agar pas di A4 -->
-    <div class="max-w-4xl mx-auto grid grid-cols-2 gap-4 page-break">
-        
-        <!-- ================= KARTU 1 (CONTOH) ================= -->
-        <div class="bg-white border-2 border-slate-300 rounded-xl p-4 shadow-sm flex flex-col justify-between h-[280px] w-full relative overflow-hidden bg-dot-grid">
-            
-            <!-- HEADER KARTU -->
-            <div class="flex items-center gap-3 border-b-2 border-slate-800 pb-2">
-                <!-- Tempat Logo Sekolah (Bisa diganti URL logo asli/pribadi) -->
-                <div class="w-10 h-10 bg-slate-200 rounded-md flex items-center justify-center text-xs font-bold text-slate-500 shrink-0">
-                    LOGO
-                </div>
-                <div>
-                    <h3 class="text-[11px] font-bold uppercase tracking-wider text-slate-800 leading-tight">Pemerintah Kabupaten Kota</h3>
-                    <h2 class="text-xs font-extrabold uppercase text-slate-900 leading-tight">SD Negeri Senden 2</h2>
-                    <p class="text-[9px] text-slate-500 leading-none mt-0.5">Kec. Mungkid, Kabupaten Magelang</p>
-                </div>
-            </div>
 
-            <!-- JUDUL KARTU -->
-            <div class="text-center my-2">
-                <span class="bg-slate-100 text-slate-800 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-slate-200">
-                    Kartu Peserta Ujian
-                </span>
-            </div>
-
-            <!-- ISI DATA SISWA -->
-            <div class="grid grid-cols-12 gap-x-1 gap-y-1 text-xs text-slate-700 flex-grow px-1">
-                <div class="col-span-3 font-medium text-slate-500">Nama</div>
-                <div class="col-span-9 font-bold text-slate-900">: ADITYA PUTRA PRATAMA</div>
-
-                <div class="col-span-3 font-medium text-slate-500">NISN / NIS</div>
-                <div class="col-span-9">: 0123456789 / 2425</div>
-
-                <div class="col-span-3 font-medium text-slate-500">TTL</div>
-                <!-- Ini hasil dari logic penggabungan & bulan teks yang kamu mau -->
-                <div class="col-span-9">: Magelang, 14 April 2014</div>
-
-                <div class="col-span-3 font-medium text-slate-500">Ruang</div>
-                <div class="col-span-9 font-semibold text-emerald-700">: Ruang 02 (Kelas VI B)</div>
-            </div>
-
-            <!-- FOOTER (FOTO & TTD) -->
-            <div class="flex justify-between items-end mt-2 pt-2 border-t border-dashed border-slate-200">
-                <!-- Kotak Foto Siswa -->
-                <div class="w-14 h-[70px] border border-slate-300 bg-slate-50 flex items-center justify-center rounded text-[9px] text-slate-400 font-medium">
-                    Foto 3x4
-                </div>
-                
-                <!-- Tanda Tangan Kepsek -->
-                <div class="text-center text-[10px] text-slate-800 pr-2">
-                    <p class="text-[9px] text-slate-500">Kepala Sekolah,</p>
-                    <div class="h-8"></div> <!-- Space buat TTD/Stempel -->
-                    <p class="font-bold underline leading-none">NAMA KEPALA SEKOLAH, S.Pd.</p>
-                    <p class="text-[8px] text-slate-400 mt-0.5">NIP. 19850311XXXXXXXXXX</p>
-                </div>
-            </div>
-        </div>
-        <!-- ================= AKHIR KARTU 1 ================= -->
-
-
-        <!-- ================= KARTU 2 (CONTOH) ================= -->
-        <div class="bg-white border-2 border-slate-300 rounded-xl p-4 shadow-sm flex flex-col justify-between h-[280px] w-full relative overflow-hidden">
-            <div class="flex items-center gap-3 border-b-2 border-slate-800 pb-2">
-                <div class="w-10 h-10 bg-slate-200 rounded-md flex items-center justify-center text-xs font-bold text-slate-500 shrink-0">LOGO</div>
-                <div>
-                    <h3 class="text-[11px] font-bold uppercase tracking-wider text-slate-800 leading-tight">Pemerintah Kabupaten Kota</h3>
-                    <h2 class="text-xs font-extrabold uppercase text-slate-900 leading-tight">SD Negeri Senden 2</h2>
-                    <p class="text-[9px] text-slate-500 leading-none mt-0.5">Kec. Mungkid, Kabupaten Magelang</p>
-                </div>
-            </div>
-            <div class="text-center my-2">
-                <span class="bg-slate-100 text-slate-800 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-slate-200">
-                    Kartu Peserta Ujian
-                </span>
-            </div>
-            <div class="grid grid-cols-12 gap-x-1 gap-y-1 text-xs text-slate-700 flex-grow px-1">
-                <div class="col-span-3 font-medium text-slate-500">Nama</div>
-                <div class="col-span-9 font-bold text-slate-900">: SITI RAHMAWATI</div>
-                <div class="col-span-3 font-medium text-slate-500">NISN / NIS</div>
-                <div class="col-span-9">: 0129876543 / 2426</div>
-                <div class="col-span-3 font-medium text-slate-500">TTL</div>
-                <div class="col-span-9">: Magelang, 22 Agustus 2014</div>
-                <div class="col-span-3 font-medium text-slate-500">Ruang</div>
-                <div class="col-span-9 font-semibold text-emerald-700">: Ruang 01 (Kelas VI A)</div>
-            </div>
-            <div class="flex justify-between items-end mt-2 pt-2 border-t border-dashed border-slate-200">
-                <div class="w-14 h-[70px] border border-slate-300 bg-slate-50 flex items-center justify-center rounded text-[9px] text-slate-400 font-medium">Foto 3x4</div>
-                <div class="text-center text-[10px] text-slate-800 pr-2">
-                    <p class="text-[9px] text-slate-500">Kepala Sekolah,</p>
-                    <div class="h-8"></div>
-                    <p class="font-bold underline leading-none">NAMA KEPALA SEKOLAH, S.Pd.</p>
-                    <p class="text-[8px] text-slate-400 mt-0.5">NIP. 19850311XXXXXXXXXX</p>
-                </div>
-            </div>
-        </div>
-        <!-- ================= AKHIR KARTU 2 ================= -->
-
+    <!-- ================= AREA OUTPUT UTAMA KARTU ================= -->
+    <div id="printArea" class="max-w-4xl mx-auto">
+        <!-- Kartu hasil generate otomatis akan masuk ke sini per halaman A4 -->
     </div>
 
+
+    <!-- ================= LOGIC JAVASCRIPT (DI BALIK LAYAR) ================= -->
+    <script>
+        let headers = [];
+        let dataSiswa = [];
+
+        // Fungsi membaca data yang di-paste dari Excel
+        function prosesExcel() {
+            const rawText = document.getElementById('excelInput').value.trim();
+            if (!rawText) return alert('Silahkan paste datanya dulu!');
+
+            const rows = rawText.split('\n').map(row => row.split('\t'));
+            headers = rows[0].map(h => h.trim()); // Ambil baris pertama sebagai judul kolom
+            dataSiswa = [];
+
+            // Ambil data baris-baris berikutnya
+            for (let i = 1; i < rows.length; i++) {
+                if (rows[i].length === headers.length) {
+                    let siswa = {};
+                    headers.forEach((header, index) => {
+                        siswa[header] = rows[i][index] ? rows[i][index].trim() : '';
+                    });
+                    dataSiswa.push(siswa);
+                }
+            }
+
+            // Munculkan pilihan checklist kolom untuk digabung
+            const container = document.getElementById('checkboxContainer');
+            container.innerHTML = '';
+            headers.forEach(header => {
+                container.innerHTML += `
+                    <label class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100">
+                        <input type="checkbox" name="kolomGabung" value="${header}" class="rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                        <span>${header}</span>
+                    </label>
+                `;
+            });
+
+            document.getElementById('configSection').classList.remove('hidden');
+        }
+
+        // Fungsi mengubah format tanggal angka '20-04-2014' atau '2014/04/20' menjadi teks '20 April 2014'
+        function formatTanggalIndo(text) {
+            if (!text) return '';
+            // Regex mendeteksi pola tanggal umum
+            const match = text.match(/(\d{1,4})[\/\-.](\d{1,2})[\/\-.](\d{1,4})/);
+            if (!match) return text; // Kalau bukan format tanggal, kembalikan teks asli
+
+            let d, m, y;
+            if (match[1].length === 4) { // Format YYYY-MM-DD
+                y = match[1]; m = parseInt(match[2]); d = match[3];
+            } else { // Format DD-MM-YYYY
+                d = match[1]; m = parseInt(match[2]); y = match[3];
+            }
+
+            const bulanIndo = ["", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+            if (m >= 1 && m <= 12) {
+                return `${parseInt(d)} ${bulanIndo[m]} ${y}`;
+            }
+            return text;
+        }
+
+        // Fungsi mengubah teks biasa jadi Capital Case (Huruf Kapital di Awal Kata)
+        function toTitleCase(str) {
+            return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
+        }
+
+        // Fungsi Utama me-render kartu ke halaman web
+        function generateKartu() {
+            const checkboxes = document.querySelectorAll('input[name="kolomGabung"]:checked');
+            const kolomDipilih = Array.from(checkboxes).map(cb => cb.value);
+
+            if (kolomDipilih.length === 0) return alert('Pilih minimal satu kolom untuk dijadikan data TTL!');
+
+            const printArea = document.getElementById('printArea');
+            printArea.innerHTML = ''; // Reset cetakan lama
+
+            let currentGridHTML = '';
+            
+            dataSiswa.forEach((siswa, index) => {
+                // Memproses logika penggabungan kolom pilihan (Tempat + Tanggal Lahir)
+                let gabunganTTL = kolomDipilih.map(kolom => {
+                    let isi = siswa[kolom] || '';
+                    return formatTanggalIndo(isi); // Otomatis saring tanggal jadi nama bulan teks
+                }).filter(val => val !== '').join(', ');
+
+                // Deteksi otomatis kolom Nama dan NISN/NIS dari file Excel secara fleksibel
+                let namaSiswa = toTitleCase(siswa['Nama'] || siswa['NAMA'] || Object.values(siswa)[0]);
+                let nisnSiswa = siswa['NISN'] || siswa['Nisn'] || siswa['NIS'] || '-';
+                let ruangSiswa = siswa['Ruang'] || siswa['RUANG'] || siswa['Kelas'] || '-';
+
+                // Desain Template Satu Kartu (Estetik Clean-Studio)
+                const kartuHTML = `
+                    <div class="bg-white border-2 border-slate-300 rounded-xl p-4 shadow-sm flex flex-col justify-between h-[280px] w-full relative overflow-hidden">
+                        <!-- HEADER KARTU -->
+                        <div class="flex items-center gap-3 border-b-2 border-slate-800 pb-2">
+                            <div class="w-10 h-10 bg-slate-900 text-white rounded-md flex items-center justify-center text-[10px] font-black shrink-0">SDN 2</div>
+                            <div>
+                                <h3 class="text-[10px] font-bold uppercase tracking-wider text-slate-600 leading-tight">Pemerintah Kabupaten Magelang</h3>
+                                <h2 class="text-xs font-extrabold uppercase text-slate-900 leading-tight">SD Negeri Senden 2</h2>
+                                <p class="text-[8px] text-slate-400 leading-none mt-0.5">Kecamatan Mungkid, Kabupaten Magelang</p>
+                            </div>
+                        </div>
+                        <!-- JUDUL KARTU -->
+                        <div class="text-center my-1.5">
+                            <span class="bg-slate-100 text-slate-800 text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-widest border border-slate-200">Kartu Peserta Ujian</span>
+                        </div>
+                        <!-- DATA SISWA -->
+                        <div class="grid grid-cols-12 gap-x-1 gap-y-1 text-[11px] text-slate-700 flex-grow px-1">
+                            <div class="col-span-3 font-medium text-slate-400">Nama</div>
+                            <div class="col-span-9 font-bold text-slate-900">: ${namaSiswa}</div>
+                            <div class="col-span-3 font-medium text-slate-400">NISN / NIS</div>
+                            <div class="col-span-9">: ${nisnSiswa}</div>
+                            <div class="col-span-3 font-medium text-slate-400">TTL</div>
+                            <!-- Hasil olahan text dinamis -->
+                            <div class="col-span-9">: ${gabunganTTL}</div>
+                            <div class="col-span-3 font-medium text-slate-400">Ruang</div>
+                            <div class="col-span-9 font-semibold text-emerald-800">: ${ruangSiswa}</div>
+                        </div>
+                        <!-- FOOTER -->
+                        <div class="flex justify-between items-end mt-1 pt-1.5 border-t border-dashed border-slate-200">
+                            <div class="w-12 h-14 border border-slate-300 bg-slate-50 flex items-center justify-center rounded text-[8px] text-slate-400 font-medium">Foto 3x4</div>
+                            <div class="text-center text-[9px] text-slate-800 pr-1">
+                                <p class="text-[8px] text-slate-400">Kepala Sekolah,</p>
+                                <div class="h-6"></div>
+                                <p class="font-bold underline leading-none">NAMA KEPALA SEKOLAH, S.Pd.</p>
+                                <p class="text-[7px] text-slate-400 mt-0.5">NIP. 19850311XXXXXXXXXX</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Setiap kelipatan awal halaman atau kartu pertama, buka bungkus pembagi kertas A4
+                if (index % 4 === 0) {
+                    currentGridHTML = `<div class="grid grid-cols-2 gap-4 page-break mb-8">`;
+                }
+
+                currentGridHTML += kartuHTML;
+
+                // Setiap kartu ke-4 ATAU data terakhir, tutup bungkus div-nya dan masukkan ke printArea
+                if ((index + 1) % 4 === 0 || index === dataSiswa.length - 1) {
+                    currentGridHTML += `</div>`;
+                    printArea.innerHTML += currentGridHTML;
+                }
+            });
+
+            document.getElementById('printButtonContainer').classList.remove('hidden');
+        }
+    </script>
 </body>
 </html>
-
