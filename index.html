@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cetak Kartu Ujian Instan</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Font Google modern & clean */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        /* Aturan Khusus Cetak / Print */
+        @media print {
+            body {
+                background-color: #fff;
+            }
+            .no-print {
+                display: none; /* Sembunyikan tombol pas dicetak */
+            }
+            .page-break {
+                page-break-after: always; /* Otomatis potong halaman tiap 4 kartu */
+            }
+            @page {
+                size: A4;
+                margin: 10mm; /* Jarak aman printer */
+            }
+        }
+    </style>
+</head>
+<body class="p-6">
+
+    <!-- Tombol Cetak (Sembunyi pas diprint) -->
+    <div class="no-print flex justify-center mb-8">
+        <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-950 text-white font-semibold px-6 py-2.5 rounded-lg shadow-sm transition-all flex items-center gap-2 text-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4zm1 5a1 1 0 1 1 2 0 1 1 0 0 1-2 0m7 0a1 1 0 1 1 2 0 1 1 0 0 1-2 0M5 10v3a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-3z"/></svg>
+            Cetak Kartu Ujian
+        </button>
+    </div>
+
+    <!-- CONTAINER UTAMA KARTU (Grid 2 Kolom) -->
+    <!-- Setiap 4 kartu, bungkus dalam div 'page-break' ini agar pas di A4 -->
+    <div class="max-w-4xl mx-auto grid grid-cols-2 gap-4 page-break">
+        
+        <!-- ================= KARTU 1 (CONTOH) ================= -->
+        <div class="bg-white border-2 border-slate-300 rounded-xl p-4 shadow-sm flex flex-col justify-between h-[280px] w-full relative overflow-hidden bg-dot-grid">
+            
+            <!-- HEADER KARTU -->
+            <div class="flex items-center gap-3 border-b-2 border-slate-800 pb-2">
+                <!-- Tempat Logo Sekolah (Bisa diganti URL logo asli/pribadi) -->
+                <div class="w-10 h-10 bg-slate-200 rounded-md flex items-center justify-center text-xs font-bold text-slate-500 shrink-0">
+                    LOGO
+                </div>
+                <div>
+                    <h3 class="text-[11px] font-bold uppercase tracking-wider text-slate-800 leading-tight">Pemerintah Kabupaten Kota</h3>
+                    <h2 class="text-xs font-extrabold uppercase text-slate-900 leading-tight">SD Negeri Senden 2</h2>
+                    <p class="text-[9px] text-slate-500 leading-none mt-0.5">Kec. Mungkid, Kabupaten Magelang</p>
+                </div>
+            </div>
+
+            <!-- JUDUL KARTU -->
+            <div class="text-center my-2">
+                <span class="bg-slate-100 text-slate-800 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-slate-200">
+                    Kartu Peserta Ujian
+                </span>
+            </div>
+
+            <!-- ISI DATA SISWA -->
+            <div class="grid grid-cols-12 gap-x-1 gap-y-1 text-xs text-slate-700 flex-grow px-1">
+                <div class="col-span-3 font-medium text-slate-500">Nama</div>
+                <div class="col-span-9 font-bold text-slate-900">: ADITYA PUTRA PRATAMA</div>
+
+                <div class="col-span-3 font-medium text-slate-500">NISN / NIS</div>
+                <div class="col-span-9">: 0123456789 / 2425</div>
+
+                <div class="col-span-3 font-medium text-slate-500">TTL</div>
+                <!-- Ini hasil dari logic penggabungan & bulan teks yang kamu mau -->
+                <div class="col-span-9">: Magelang, 14 April 2014</div>
+
+                <div class="col-span-3 font-medium text-slate-500">Ruang</div>
+                <div class="col-span-9 font-semibold text-emerald-700">: Ruang 02 (Kelas VI B)</div>
+            </div>
+
+            <!-- FOOTER (FOTO & TTD) -->
+            <div class="flex justify-between items-end mt-2 pt-2 border-t border-dashed border-slate-200">
+                <!-- Kotak Foto Siswa -->
+                <div class="w-14 h-[70px] border border-slate-300 bg-slate-50 flex items-center justify-center rounded text-[9px] text-slate-400 font-medium">
+                    Foto 3x4
+                </div>
+                
+                <!-- Tanda Tangan Kepsek -->
+                <div class="text-center text-[10px] text-slate-800 pr-2">
+                    <p class="text-[9px] text-slate-500">Kepala Sekolah,</p>
+                    <div class="h-8"></div> <!-- Space buat TTD/Stempel -->
+                    <p class="font-bold underline leading-none">NAMA KEPALA SEKOLAH, S.Pd.</p>
+                    <p class="text-[8px] text-slate-400 mt-0.5">NIP. 19850311XXXXXXXXXX</p>
+                </div>
+            </div>
+        </div>
+        <!-- ================= AKHIR KARTU 1 ================= -->
+
+
+        <!-- ================= KARTU 2 (CONTOH) ================= -->
+        <div class="bg-white border-2 border-slate-300 rounded-xl p-4 shadow-sm flex flex-col justify-between h-[280px] w-full relative overflow-hidden">
+            <div class="flex items-center gap-3 border-b-2 border-slate-800 pb-2">
+                <div class="w-10 h-10 bg-slate-200 rounded-md flex items-center justify-center text-xs font-bold text-slate-500 shrink-0">LOGO</div>
+                <div>
+                    <h3 class="text-[11px] font-bold uppercase tracking-wider text-slate-800 leading-tight">Pemerintah Kabupaten Kota</h3>
+                    <h2 class="text-xs font-extrabold uppercase text-slate-900 leading-tight">SD Negeri Senden 2</h2>
+                    <p class="text-[9px] text-slate-500 leading-none mt-0.5">Kec. Mungkid, Kabupaten Magelang</p>
+                </div>
+            </div>
+            <div class="text-center my-2">
+                <span class="bg-slate-100 text-slate-800 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-slate-200">
+                    Kartu Peserta Ujian
+                </span>
+            </div>
+            <div class="grid grid-cols-12 gap-x-1 gap-y-1 text-xs text-slate-700 flex-grow px-1">
+                <div class="col-span-3 font-medium text-slate-500">Nama</div>
+                <div class="col-span-9 font-bold text-slate-900">: SITI RAHMAWATI</div>
+                <div class="col-span-3 font-medium text-slate-500">NISN / NIS</div>
+                <div class="col-span-9">: 0129876543 / 2426</div>
+                <div class="col-span-3 font-medium text-slate-500">TTL</div>
+                <div class="col-span-9">: Magelang, 22 Agustus 2014</div>
+                <div class="col-span-3 font-medium text-slate-500">Ruang</div>
+                <div class="col-span-9 font-semibold text-emerald-700">: Ruang 01 (Kelas VI A)</div>
+            </div>
+            <div class="flex justify-between items-end mt-2 pt-2 border-t border-dashed border-slate-200">
+                <div class="w-14 h-[70px] border border-slate-300 bg-slate-50 flex items-center justify-center rounded text-[9px] text-slate-400 font-medium">Foto 3x4</div>
+                <div class="text-center text-[10px] text-slate-800 pr-2">
+                    <p class="text-[9px] text-slate-500">Kepala Sekolah,</p>
+                    <div class="h-8"></div>
+                    <p class="font-bold underline leading-none">NAMA KEPALA SEKOLAH, S.Pd.</p>
+                    <p class="text-[8px] text-slate-400 mt-0.5">NIP. 19850311XXXXXXXXXX</p>
+                </div>
+            </div>
+        </div>
+        <!-- ================= AKHIR KARTU 2 ================= -->
+
+    </div>
+
+</body>
+</html>
+
