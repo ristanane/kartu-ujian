@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Card Generator v4.0 - SDN Senden 2</title>
+    <title>Smart Card Generator v5.1 - SDN Senden 2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
@@ -18,25 +18,20 @@
             max-height: 70mm;
         }
 
-        /* Layout khusus cetak printer (Landscape Otomatis) */
+        /* Aturan Cetak Printer Portrait Mepet */
         @media print {
             body { background-color: #fff; padding: 0; margin: 0; }
             .no-print { display: none !important; }
             .page-break { page-break-after: always; display: grid !important; }
             
-            /* Setting halaman otomatis mendatar (Landscape) */
             @page { 
-                size: landscape; 
-                margin: 5mm; 
+                size: portrait; 
+                margin: 4mm 6mm 4mm 6mm; 
             }
             .card-container { box-shadow: none !important; }
         }
 
-        /* Garis pembatas potong aman (Hanya muncul di layar/Aplikasi, tidak ikut keprint) */
-        .cutting-line-v { border-left: 1px dashed #cbd5e1; height: 100%; position: absolute; left: 50%; top: 0; transform: translateX(-50%); }
-        .cutting-line-v-3t { border-left: 1px dashed #cbd5e1; height: 100%; position: absolute; left: 33.33%; top: 0; }
-        .cutting-line-v-3r { border-left: 1px dashed #cbd5e1; height: 100%; position: absolute; left: 66.66%; top: 0; }
-        .cutting-line-h { border-top: 1px dashed #cbd5e1; width: 100%; position: absolute; top: 50%; left: 0; transform: translateY(-50%); }
+        .cutting-grid { gap: 4px; } 
     </style>
 </head>
 <body class="p-4 md:p-8 min-h-screen pb-24">
@@ -49,15 +44,15 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zm4.5 5a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1zM6 9.5a.5.5 0 0 0 .5-.5h3a.5.5 0 0 0 0 1h-3a.5.5 0 0 0-.5-.5m.5 2.5a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1zM4.5 4a.5.5 0 0 0 0 1h7a.5.5 0 0 0 0-1z"/></svg>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold text-slate-950 tracking-tight">Smart Card Generator v4.0 (Landscape Hemat Kertas)</h1>
-                    <p class="text-xs text-slate-500">Ukuran kartu presisi 10x7 cm. Posisi Foto & TTD siap stempel basah.</p>
+                    <h1 class="text-xl font-bold text-slate-950 tracking-tight">Smart Card Generator v5.1 (Fix Posisi Stempel)</h1>
+                    <p class="text-xs text-slate-500">Foto digeser ke kiri nama Kepsek agar stempel basah menimpa pinggiran foto.</p>
                 </div>
             </div>
         </div>
 
         <div class="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-xl">
             <h2 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center justify-between">
-                <span>⚙️ Pengaturan Kop, Pejabat & Desain</span>
+                <span>⚙️ Pengaturan Kop, Pejabat & Judul Kartu</span>
                 <div class="flex gap-2">
                     <button onclick="resetSettings()" class="text-[10px] text-red-600 font-semibold bg-red-50 hover:bg-red-100 border border-red-200 px-2 py-0.5 rounded transition-all">✕ Reset Setelan</button>
                     <button onclick="saveSettings()" class="text-[10px] text-emerald-700 font-semibold bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded transition-all">✔ Simpan Setelan</button>
@@ -65,16 +60,20 @@
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-[10px] font-semibold text-slate-500 mb-1">Nama Pemda</label>
+                    <label class="block text-[10px] font-semibold text-slate-500 mb-1">Nama Pemda / Yayasan</label>
                     <input type="text" id="setPemda" value="Pemerintah Kabupaten Magelang" class="w-full p-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-slate-950 bg-white">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-semibold text-slate-500 mb-1">Nama Sekolah</label>
-                    <input type="text" id="setSekolah" value="SD Negeri Senden 2" class="w-full p-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-slate-950 bg-white">
+                    <label class="block text-[10px] font-semibold text-slate-500 mb-1">Nama Instansi / Sekolah</label>
+                    <input type="text" id="setSekolah" value="SD Negeri Senden 2" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-bold focus:outline-none focus:border-slate-950 bg-white">
                 </div>
                 <div>
                     <label class="block text-[10px] font-semibold text-slate-500 mb-1">Alamat Sekolah</label>
                     <input type="text" id="setAlamat" value="Kecamatan Mungkid, Kabupaten Magelang" class="w-full p-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-slate-950 bg-white">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-semibold text-amber-600 mb-1">✍️ Judul Teks Kartu (Bisa Diedit)</label>
+                    <input type="text" id="setJudulKartu" value="KARTU PESERTA UJIAN" class="w-full p-2 border border-amber-300 bg-amber-50 rounded-lg text-xs font-bold focus:outline-none focus:border-amber-500">
                 </div>
                 <div>
                     <label class="block text-[10px] font-semibold text-slate-500 mb-1">Nama Kepala Sekolah</label>
@@ -112,10 +111,11 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-semibold text-slate-500 mb-1">Jumlah Kartu & Susunan Per Lembar (Landscape)</label>
+                    <label class="block text-[10px] font-semibold text-slate-500 mb-1">Kapasitas Lembar A4 (Mepet Tegak)</label>
                     <select id="setGrid" class="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:border-slate-950">
-                        <option value="8">8 Kartu (Sangat Hemat - 2 Baris, 4 Kolom)</option>
-                        <option value="6">6 Kartu (Sangat Longgar - 2 Baris, 3 Kolom)</option>
+                        <option value="8">8 Kartu (Sangat Hemat - 2 Kolom, 4 Baris)</option>
+                        <option value="6">6 Kartu (Sedang - 2 Kolom, 3 Baris)</option>
+                        <option value="4">4 Kartu (Longgar - 2 Kolom, 2 Baris)</option>
                     </select>
                 </div>
             </div>
@@ -140,8 +140,7 @@
         <div id="configSection" class="hidden mb-4 p-4 bg-slate-900 text-white rounded-xl border border-slate-800">
             <label class="block text-xs font-semibold text-amber-400 uppercase tracking-wider mb-3">Langkah 2: Centang Kolom Penyusun Data TTL</label>
             <div id="checkboxContainer" class="flex flex-wrap gap-3 text-xs text-slate-200 mb-4"></div>
-            
-            <button onclick="generateKartu()" id="btnGenerate" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-3 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 uppercase tracking-wider">
+            <button onclick="generateKartu()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-3 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 uppercase tracking-wider">
                 Bikin & Susun Kartu Otomatis ✨
             </button>
         </div>
@@ -161,8 +160,8 @@
     </div>
 
     <div id="printButtonContainer" class="no-print hidden flex justify-center mb-6">
-        <button onclick="window.print()" class="bg-slate-900 hover:bg-slate-950 text-white font-bold px-6 py-3 rounded-xl shadow-md transition-all flex items-center gap-2 text-xs uppercase tracking-wider">
-            Cetak Dokumen Sekarang (Gunakan Mode Landscape)
+        <button onclick="window.print()" class="bg-slate-900 hover:bg-slate-950 text-white font-bold px-6 py-3 rounded-xl shadow-md transition-all text-xs uppercase tracking-wider">
+            Cetak Dokumen Sekarang (Mode Portrait)
         </button>
     </div>
 
@@ -178,6 +177,7 @@
                 document.getElementById('setPemda').value = localStorage.getItem('setPemda');
                 document.getElementById('setSekolah').value = localStorage.getItem('setSekolah');
                 document.getElementById('setAlamat').value = localStorage.getItem('setAlamat');
+                document.getElementById('setJudulKartu').value = localStorage.getItem('setJudulKartu') || 'KARTU PESERTA UJIAN';
                 document.getElementById('setKepsek').value = localStorage.getItem('setKepsek');
                 document.getElementById('setNip').value = localStorage.getItem('setNip');
                 document.getElementById('setTtdFile').value = localStorage.getItem('setTtdFile');
@@ -197,6 +197,7 @@
             localStorage.setItem('setPemda', document.getElementById('setPemda').value);
             localStorage.setItem('setSekolah', document.getElementById('setSekolah').value);
             localStorage.setItem('setAlamat', document.getElementById('setAlamat').value);
+            localStorage.setItem('setJudulKartu', document.getElementById('setJudulKartu').value);
             localStorage.setItem('setKepsek', document.getElementById('setKepsek').value);
             localStorage.setItem('setNip', document.getElementById('setNip').value);
             localStorage.setItem('setTtdFile', document.getElementById('setTtdFile').value);
@@ -209,20 +210,16 @@
             localStorage.setItem('chkShowTtd', document.getElementById('chkShowTtd').checked);
             localStorage.setItem('chkShowNoPeserta', document.getElementById('chkShowNoPeserta').checked);
             localStorage.setItem('chkShowRuang', document.getElementById('chkShowRuang').checked);
-            alert('Pengaturan sekolah terkunci aman di memori browser! ⭐');
+            alert('Pengaturan berhasil disimpan! ⭐');
         }
 
         function resetSettings() {
-            if(confirm('Reset semua pengaturan ke setelan pabrik?')) {
-                localStorage.clear();
-                location.reload();
-            }
+            if(confirm('Reset semua pengaturan?')) { localStorage.clear(); location.reload(); }
         }
 
         function prosesExcel() {
             const rawText = document.getElementById('excelInput').value.trim();
             if (!rawText) return alert('Silahkan paste kolom data dari Excel terlebih dahulu!');
-
             const rows = rawText.split('\n').map(row => row.split('\t'));
             headers = rows[0].map(h => h.trim());
             dataSiswa = [];
@@ -231,9 +228,7 @@
             for (let i = 1; i < rows.length; i++) {
                 if (rows[i].length === headers.length) {
                     let siswa = {};
-                    headers.forEach((header, index) => {
-                        siswa[header] = rows[i][index] ? rows[i][index].trim() : '';
-                    });
+                    headers.forEach((header, index) => { siswa[header] = rows[i][index] ? rows[i][index].trim() : ''; });
                     dataSiswa.push(siswa);
                     let r = siswa['Ruang'] || siswa['RUANG'] || siswa['Kelas'] || '';
                     if(r) setRuangUnik.add(r);
@@ -242,16 +237,14 @@
 
             const selectFilter = document.getElementById('selectFilterRuang');
             selectFilter.innerHTML = '<option value="ALL">Tampilkan Semua Data</option>';
-            setRuangUnik.forEach(ruang => {
-                selectFilter.innerHTML += `<option value="${ruang.toLowerCase()}">${ruang}</option>`;
-            });
+            setRuangUnik.forEach(ruang => { selectFilter.innerHTML += `<option value="${ruang.toLowerCase()}">${ruang}</option>`; });
 
             const container = document.getElementById('checkboxContainer');
             container.innerHTML = '';
             headers.forEach(header => {
                 const isChecked = header.toLowerCase().includes('lahir') ? 'checked' : '';
                 container.innerHTML += `
-                    <label class="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 cursor-pointer text-white">
+                    <label class="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-lg text-white text-xs cursor-pointer">
                         <input type="checkbox" name="kolomGabung" value="${header}" ${isChecked} class="rounded text-amber-400">
                         <span>${header}</span>
                     </label>
@@ -281,6 +274,7 @@
             const txtPemda = document.getElementById('setPemda').value;
             const txtSekolah = document.getElementById('setSekolah').value;
             const txtAlamat = document.getElementById('setAlamat').value;
+            const txtJudulKartu = document.getElementById('setJudulKartu').value.toUpperCase();
             const txtKepsek = document.getElementById('setKepsek').value;
             const txtNip = document.getElementById('setNip').value;
             const txtTtdFile = document.getElementById('setTtdFile').value;
@@ -320,7 +314,6 @@
                 let ruangSiswa = siswa['Ruang'] || siswa['RUANG'] || siswa['Kelas'] || '-';
                 let noPeserta = siswa['No Peserta'] || siswa['NO PESERTA'] || siswa['Nomor'] || '-';
 
-                // Nama dijamin BOLD & Menyesuaikan panjang karakter
                 let nameFontSize = namaSiswa.length > 22 ? 'text-[10px] font-bold leading-tight' : 'text-[12px] font-bold';
 
                 let logoHTML = `<div class="w-9 h-9 bg-slate-900 text-white rounded-lg flex items-center justify-center text-[9px] font-black shrink-0">SDN</div>`;
@@ -332,19 +325,19 @@
                 let fotoHTML = '';
                 if (showFoto) {
                     if (optFoto === 'digital_nisn' && nisnSiswa !== '-') {
-                        fotoHTML = `<img src="foto-siswa/${nisnSiswa}.jpg" onerror="this.onerror=null; this.src='https://via.placeholder.com/120x140?text=3x4'" class="w-12 h-15 border border-slate-300 object-cover rounded shadow-sm z-10 bg-white ml-2">`;
+                        fotoHTML = `<img src="foto-siswa/${nisnSiswa}.jpg" onerror="this.onerror=null; this.src='https://via.placeholder.com/120x140?text=3x4'" class="w-12 h-15 border border-slate-300 object-cover rounded shadow-sm bg-white mr-2">`;
                     } else {
-                        fotoHTML = `<div class="w-12 h-15 border border-slate-300 bg-slate-50 flex items-center justify-center rounded text-[8px] text-slate-400 font-bold z-10 ml-2">Foto 3x4</div>`;
+                        fotoHTML = `<div class="w-12 h-15 border border-slate-300 bg-slate-50 flex items-center justify-center rounded text-[8px] text-slate-400 font-bold mr-2">Foto 3x4</div>`;
                     }
                 }
 
-                let ttdHTML = `<div class="h-6"></div>`;
+                let ttdImgHTML = '';
                 if (showTtd && txtTtdFile.trim() !== '') {
-                    // Posisi TTD digeser agar pas menimpa foto siswa (stempel basah)
-                    ttdHTML = `<div class="h-6 relative"><img src="aset-sekolah/${txtTtdFile}" class="absolute -top-4 -right-3 h-10 object-contain mix-blend-multiply z-20"></div>`;
+                    // TTD diposisikan overlapping di kiri teks Kepala Sekolah (mengarah ke tengah-tengah arah foto)
+                    ttdImgHTML = `<img src="aset-sekolah/${txtTtdFile}" class="absolute -top-5 -left-4 h-10 object-contain mix-blend-multiply z-20">`;
                 }
 
-                // TEMPLATE KARTU LANDSCAPE 10 X 7 CM
+                // TEMPLATE PORTRAIT KARTU PRESISI 10 X 7 CM
                 const kartuHTML = `
                     <div data-identity="${namaSiswa.toLowerCase()} ${nisnSiswa}" data-ruang="${ruangSiswa.toLowerCase()}" class="card-element card-size bg-white border-2 ${colorSchema.border} rounded-xl p-3 shadow-sm flex flex-col justify-between relative overflow-hidden card-container">
                         ${watermarkHTML}
@@ -353,54 +346,56 @@
                             ${logoHTML}
                             <div class="text-center flex-grow">
                                 <h3 class="text-[7.5px] font-bold uppercase tracking-wider text-slate-500 leading-none">${txtPemda}</h3>
-                                <h2 class="text-[10.5px] font-extrabold uppercase text-slate-900 leading-tight mt-0.5">${txtSekolah}</h2>
+                                <h2 class="text-[12px] font-black uppercase text-slate-900 leading-tight mt-0.5 tracking-tight">${txtSekolah}</h2>
                                 <p class="text-[7px] text-slate-400 font-medium leading-none mt-0.5 truncate max-w-[240px] mx-auto">${txtAlamat}</p>
                             </div>
                             <div id="qr_${index}" class="w-8 h-8 bg-white p-0.5 border border-slate-200 rounded shrink-0 flex items-center justify-center"></div>
                         </div>
 
                         <div class="text-center my-0.5 relative z-10">
-                            <span class="${colorSchema.badge} text-[7.5px] font-extrabold px-3 py-0.5 rounded-full uppercase tracking-widest border">Kartu Peserta Ujian</span>
+                            <span class="${colorSchema.badge} text-[9px] font-black px-4 py-0.5 rounded-full uppercase tracking-widest border block truncate max-w-[240px] mx-auto">${txtJudulKartu}</span>
                         </div>
 
-                        <div class="grid grid-cols-12 gap-x-1 gap-y-0.5 text-[10.5px] text-slate-700 flex-grow px-1 mt-0.5 relative z-10">
+                        <div class="grid grid-cols-12 gap-x-1 gap-y-0.5 text-[9.5px] font-bold text-slate-700 flex-grow px-1 mt-0.5 relative z-10">
                             ${showNoPeserta ? `
-                                <div class="col-span-3 font-medium text-slate-400">No. Peserta</div>
-                                <div class="col-span-9 font-mono font-bold text-red-600">: ${noPeserta}</div>
+                                <div class="col-span-3 text-slate-400 font-medium">No. Peserta</div>
+                                <div class="col-span-9 font-mono text-red-600">: ${noPeserta}</div>
                             ` : ''}
 
-                            <div class="col-span-3 font-medium text-slate-400">Nama</div>
-                            <div class="col-span-9 ${nameFontSize} text-slate-900 truncate">: ${namaSiswa}</div>
+                            <div class="col-span-3 text-slate-400 font-medium">Nama</div>
+                            <div class="col-span-9 text-slate-900 truncate">: ${namaSiswa}</div>
 
-                            <div class="col-span-3 font-medium text-slate-400">NISN</div>
-                            <div class="col-span-9 font-semibold">: ${nisnSiswa}</div>
+                            <div class="col-span-3 text-slate-400 font-medium">NISN</div>
+                            <div class="col-span-9 text-slate-900">: ${nisnSiswa}</div>
 
-                            <div class="col-span-3 font-medium text-slate-400">TTL</div>
-                            <div class="col-span-9 truncate">: ${gabunganTTL}</div>
+                            <div class="col-span-3 text-slate-400 font-medium">TTL</div>
+                            <div class="col-span-9 text-slate-900 truncate">: ${gabunganTTL}</div>
 
                             ${showRuang ? `
-                                <div class="col-span-3 font-medium text-slate-400">Ruang</div>
-                                <div class="col-span-9 font-bold ${colorSchema.textRuang}">: ${ruangSiswa}</div>
+                                <div class="col-span-3 text-slate-400 font-medium">Ruang</div>
+                                <div class="col-span-9 ${colorSchema.textRuang}">: ${ruangSiswa}</div>
                             ` : ''}
                         </div>
 
-                        <div class="flex justify-between items-end mt-0.5 pt-1 border-t border-slate-100 relative z-10">
-                            <div class="text-left text-[8.5px] text-slate-800 flex-grow max-w-[140px]">
-                                <p class="text-[7px] text-slate-400 leading-none">Kepala Sekolah,</p>
-                                ${ttdHTML}
-                                <p class="font-bold underline leading-none truncate">${toTitleCase(txtKepsek)}</p>
+                        <div class="flex justify-end items-end mt-0.5 pt-1 border-t border-slate-100 relative z-10">
+                            
+                            ${fotoHTML}
+                            
+                            <div class="text-left text-[8px] text-slate-800 w-[115px] shrink-0 relative">
+                                <p class="text-[6.5px] text-slate-400 leading-none">Kepala Sekolah,</p>
+                                <div class="h-6 relative mt-0.5">
+                                    ${ttdImgHTML}
+                                </div>
+                                <p class="font-extrabold underline leading-none truncate">${toTitleCase(txtKepsek)}</p>
                                 <p class="text-[6.5px] text-slate-400 mt-0.5">NIP. ${txtNip}</p>
                             </div>
-                            ${fotoHTML}
+
                         </div>
                     </div>
                 `;
 
-                // Buka wadah halaman baru (Grid Otomatis Berjarak 1cm)
                 if (cardsInPage === 0) {
-                    let gridLayoutClass = limitGrid === 6 ? 'grid-cols-3 gap-x-6 gap-y-8 p-6' : 'grid-cols-4 gap-x-4 gap-y-8 p-4';
-                    currentPageHTML = `<div class="page-container page-break relative grid ${gridLayoutClass} bg-white border border-slate-200 shadow-sm mb-8 rounded-2xl w-[297mm]">
-                                        ${limitGrid === 8 ? '<div class="no-print cutting-line-v"></div><div class="no-print cutting-line-h"></div>' : '<div class="no-print cutting-line-v-3t"></div><div class="no-print cutting-line-v-3r"></div><div class="no-print cutting-line-h"></div>'}`;
+                    currentPageHTML = `<div class="page-container page-break relative grid grid-cols-2 cutting-grid bg-white border border-slate-200 shadow-sm mb-6 rounded-xl w-[210mm] justify-items-center content-center py-2">`;
                 }
 
                 currentPageHTML += kartuHTML;
@@ -413,12 +408,11 @@
                 }
             });
 
-            // GENERATE INSTAN QR CODE MENGGUNAKAN LIBRARY
+            // GENERATE QR CODE
             dataSiswa.forEach((siswa, index) => {
                 let nisnSiswa = siswa['NISN'] || siswa['Nisn'] || siswa['NIS'] || '000000';
                 let namaSiswa = siswa['Nama'] || siswa['NAMA'] || 'Siswa';
                 let r = siswa['Ruang'] || siswa['RUANG'] || 'Ruang';
-                
                 let qrContainer = document.getElementById(`qr_${index}`);
                 if (qrContainer) {
                     new QRCode(qrContainer, {
