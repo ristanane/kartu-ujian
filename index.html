@@ -3,69 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Card Generator - Proyek Pribadi</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Smart Card Generator v3.0 - SDN Senden 2</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; scroll-behavior: smooth; }
         
-        /* Pola background mikro estetik untuk kartu anak SD */
-        .bg-dot-grid {
-            background-image: radial-gradient(#e2e8f0 1.5px, transparent 1.5px);
-            background-size: 12px 12px;
-        }
-
-        /* Tombol Back to Top Melayang */
-        #backToTop { position: fixed; bottom: 20px; right: 20px; z-index: 50; transition: all 0.3s; opacity: 0; pointer-events: none; }
-        #backToTop.show { opacity: 1; pointer-events: auto; }
-
-        /* Aturan Khusus Saat Dicetak (Printer) */
+        /* Layout khusus cetak printer */
         @media print {
             body { background-color: #fff; padding: 0; margin: 0; }
             .no-print { display: none !important; }
             .page-break { page-break-after: always; display: grid !important; }
-            @page { size: A4; margin: 8mm 10mm 8mm 10mm; }
-            .card-container { box-shadow: none !important; border: 1px dashed #cbd5e1 !important; border-radius: 8px !important; }
+            
+            /* Deteksi Dinamis Ukuran Kertas via CSS */
+            .paper-a4 { height: 297mm; max-height: 297mm; }
+            .paper-f4 { height: 330mm; max-height: 330mm; }
+            
+            @page { margin: 0; }
+            .card-container { box-shadow: none !important; }
         }
+
+        /* Garis bantu potong samar di luar area kartu */
+        .cutting-line-v { border-left: 1px dashed #cbd5e1; height: 100%; position: absolute; left: 50%; top: 0; transform: translateX(-50%); }
+        .cutting-line-h { border-top: 1px dashed #cbd5e1; width: 100%; position: absolute; top: 50%; left: 0; transform: translateY(-50%); }
     </style>
 </head>
 <body class="p-4 md:p-8 min-h-screen pb-24">
 
-    <!-- ================= PANEL UTAMA INPUT & CONFIG (SEMBUNYI SAAT PRINT) ================= -->
     <div class="no-print max-w-4xl mx-auto bg-white border border-slate-200 rounded-2xl p-6 shadow-sm mb-8 relative">
         
-        <!-- Header Panel -->
         <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
             <div class="flex items-center gap-3">
                 <div class="p-2.5 bg-slate-900 text-white rounded-xl shadow-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zm4.5 5a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1zM6 9.5a.5.5 0 0 0 .5-.5h3a.5.5 0 0 0 0 1h-3a.5.5 0 0 0-.5-.5m.5 2.5a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1zM4.5 4a.5.5 0 0 0 0 1h7a.5.5 0 0 0 0-1z"/></svg>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold text-slate-950 tracking-tight">Smart Card Generator (SDN Senden 2 Edition)</h1>
-                    <p class="text-xs text-slate-500">Aplikasi automasi cetak kartu ujian dinamis, estetik, dan personal.</p>
+                    <h1 class="text-xl font-bold text-slate-950 tracking-tight">Smart Card Generator (SDN Senden 2 Final)</h1>
+                    <p class="text-xs text-slate-500">Aplikasi cetak kartu ujian dengan pembatas potong aman & QR Code otomatis.</p>
                 </div>
             </div>
-            <!-- Panduan Pop-up Button -->
-            <button onclick="toggleHelp()" class="text-slate-400 hover:text-slate-900 transition-all" title="Panduan Penggunaan">
+            <button onclick="toggleHelp()" class="text-slate-400 hover:text-slate-900 transition-all">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.496 6.033h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286a.237.237 0 0 0 .241.247m2.325 6.443c.61 0 1.029-.394 1.029-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94 0 .533.425.927 1.01.927"/></svg>
             </button>
         </div>
 
-        <!-- JENDELA POP-UP PANDUAN (MODAL) -->
         <div id="helpModal" class="hidden absolute top-20 right-6 left-6 bg-slate-900 text-slate-100 p-5 rounded-xl shadow-xl z-50 text-xs border border-slate-700">
             <div class="flex justify-between items-center mb-2 border-b border-slate-700 pb-2">
-                <span class="font-bold uppercase tracking-wider text-amber-400">💡 Panduan Cepat Aplikasi</span>
+                <span class="font-bold uppercase tracking-wider text-amber-400">💡 Panduan Singkat Sistem</span>
                 <button onclick="toggleHelp()" class="text-slate-400 hover:text-white font-bold">✕</button>
             </div>
-            <ul class="list-disc pl-4 space-y-1.5 text-slate-300">
-                <li><strong class="text-white">Excel:</strong> Blok kolom Nama, NISN, Tempat Lahir, Tgl Lahir, Ruang, No Peserta di Excel lalu Paste ke Langkah 1. Baris pertama wajib judul kolom.</li>
-                <li><strong class="text-white">Foto Otomatis:</strong> Masukkan file foto siswa ke folder <code class="bg-slate-800 px-1 rounded text-emerald-400">foto-siswa/</code> di GitHub. Ubah nama file fotonya menjadi nomor NISN anak (Contoh: <code class="bg-slate-800 px-1 rounded text-emerald-400">012345.jpg</code>).</li>
-                <li><strong class="text-white">TTD & Logo:</strong> Masukkan file gambar TTD/Stempel dan Logo ke folder <code class="bg-slate-800 px-1 rounded text-emerald-400">aset-sekolah/</code>, lalu panggil nama filenya di kotak input yang disediakan.</li>
+            <ul class="list-disc pl-4 space-y-1 text-slate-300">
+                <li><strong class="text-white">QR Code Otomatis:</strong> Sistem akan mengubah data NISN secara otomatis menjadi QR Code digital di pojok kartu tanpa perlu upload gambar satu-per-satu.</li>
+                <li><strong class="text-white">Jarak Potong:</strong> Di antara kartu kini sengaja diberi ruang renggang 1 cm lengkap dengan garis putus-putus samar di tengahnya agar memotong jadi super lurus.</li>
             </ul>
         </div>
 
-        <!-- 1. PANEL IDENTITAS SEKOLAH & TEMPLATE -->
         <div class="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-xl">
             <h2 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center justify-between">
                 <span>⚙️ Pengaturan Kop, Pejabat & Desain</span>
@@ -76,7 +69,7 @@
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-[10px] font-semibold text-slate-500 mb-1">Nama Pemda / Yayasan</label>
+                    <label class="block text-[10px] font-semibold text-slate-500 mb-1">Nama Pemda</label>
                     <input type="text" id="setPemda" value="Pemerintah Kabupaten Magelang" class="w-full p-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-slate-950 bg-white">
                 </div>
                 <div>
@@ -84,7 +77,7 @@
                     <input type="text" id="setSekolah" value="SD Negeri Senden 2" class="w-full p-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-slate-950 bg-white">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-semibold text-slate-500 mb-1">Alamat / Sub-Header</label>
+                    <label class="block text-[10px] font-semibold text-slate-500 mb-1">Alamat Sekolah</label>
                     <input type="text" id="setAlamat" value="Kecamatan Mungkid, Kabupaten Magelang" class="w-full p-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-slate-950 bg-white">
                 </div>
                 <div>
@@ -97,44 +90,49 @@
                 </div>
                 <div>
                     <label class="block text-[10px] font-semibold text-slate-500 mb-1">Nama File TTD Digital (di folder aset-sekolah)</label>
-                    <input type="text" id="setTtdFile" placeholder="Contoh: ttd-kepsek.png (Kosongkan jika ttd manual)" class="w-full p-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-slate-950 bg-white">
+                    <input type="text" id="setTtdFile" placeholder="Contoh: ttd-kepsek.png" class="w-full p-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-slate-950 bg-white">
                 </div>
                 <div>
                     <label class="block text-[10px] font-semibold text-slate-500 mb-1">Nama File Logo (di folder aset-sekolah)</label>
-                    <input type="text" id="setLogoFile" placeholder="Contoh: logo-sd.png (Kosongkan jika ingin text)" class="w-full p-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-slate-950 bg-white">
+                    <input type="text" id="setLogoFile" placeholder="Contoh: logo-sd.png" class="w-full p-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-slate-950 bg-white">
                 </div>
                 <div>
                     <label class="block text-[10px] font-semibold text-slate-500 mb-1">Nama File Watermark (di folder aset-sekolah)</label>
-                    <input type="text" id="setWatermarkFile" placeholder="Contoh: tutwuri.png (Kosongkan jika polos)" class="w-full p-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-slate-950 bg-white">
+                    <input type="text" id="setWatermarkFile" placeholder="Contoh: tutwuri.png" class="w-full p-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-slate-950 bg-white">
                 </div>
                 <div>
                     <label class="block text-[10px] font-semibold text-slate-500 mb-1">Opsi Muat Foto Siswa</label>
                     <select id="setFotoOpt" class="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:border-slate-950">
-                        <option value="box">Kotak Kosong (Tempel Manual 3x4)</option>
-                        <option value="digital_nisn">Otomatis Load Foto Digital (via NISN.jpg)</option>
+                        <option value="box">Kotak Kosong (Manual 3x4)</option>
+                        <option value="digital_nisn">Otomatis Panggil Foto (via NISN.jpg)</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-semibold text-slate-500 mb-1">Tema Warna Kartu (Pastel SD)</label>
+                    <label class="block text-[10px] font-semibold text-slate-500 mb-1">Tema Warna Pinggiran (SD Pastel)</label>
                     <select id="setTema" class="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:border-slate-950">
-                        <option value="toska">Hijau Toska (Fresh & Ceria)</option>
-                        <option value="sky">Biru Langit (Calm & Modern)</option>
+                        <option value="toska">Hijau Toska (Fresh)</option>
+                        <option value="sky">Biru Langit (Calm)</option>
                         <option value="amber">Kuning Jingga (Energetic)</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-semibold text-slate-500 mb-1">Kapasitas Lembar A4</label>
+                    <label class="block text-[10px] font-semibold text-slate-500 mb-1">Jenis Kertas Printer</label>
+                    <select id="setKertas" class="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:border-slate-950">
+                        <option value="a4">Kertas A4 Standard</option>
+                        <option value="f4">Kertas F4 / Folio Indonesia</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-semibold text-slate-500 mb-1">Jumlah Kartu Per Lembar</label>
                     <select id="setGrid" class="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:border-slate-950">
-                        <option value="4">4 Kartu per Halaman A4 (Rekomendasi)</option>
-                        <option value="2">2 Kartu per Halaman A4 (Ukuran Besar)</option>
-                        <option value="6">6 Kartu per Halaman A4 (Ukuran Kecil)</option>
+                        <option value="4">4 Kartu (2 Baris, 2 Kolom)</option>
+                        <option value="2">2 Kartu Vertikal</option>
                     </select>
                 </div>
             </div>
 
-            <!-- SAKLAR SANGGUP SEMBUNYIKAN KOMPONEN (TOGGLE) -->
             <div class="mt-4 pt-3 border-t border-slate-200">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">👁️ Tampilkan / Sembunyikan Komponen Kartu</label>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">👁️ Sembunyikan / Munculkan Komponen Kartu</label>
                 <div class="flex flex-wrap gap-4 text-xs text-slate-700">
                     <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chkShowFoto" checked class="rounded border-slate-300"> Foto Siswa</label>
                     <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="chkShowTtd" checked class="rounded border-slate-300"> TTD/Stempel KS</label>
@@ -144,24 +142,20 @@
             </div>
         </div>
 
-        <!-- 2. PASTE DATA EXCEL -->
         <div class="mb-5">
             <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">Langkah 1: Paste Baris Data dari Excel</label>
-            <textarea id="excelInput" rows="4" class="w-full p-3 border border-slate-300 rounded-xl text-xs font-mono focus:outline-none focus:border-slate-950 transition-all bg-slate-50" placeholder="Nama	No Peserta	NISN	Tempat Lahir	Tanggal Lahir	Ruang&#10;ADITYA PUTRA PRATAMA	U-001	012345	Magelang	20-04-2014	Ruang 01&#10;SITI RAHMAWATI	U-002	012346	mAgELanG	2014/08/22	Ruang 02"></textarea>
+            <textarea id="excelInput" rows="4" class="w-full p-3 border border-slate-300 rounded-xl text-xs font-mono focus:outline-none focus:border-slate-950 bg-slate-50" placeholder="Nama	No Peserta	NISN	Tempat Lahir	Tanggal Lahir	Ruang&#10;ADITYA PUTRA PRATAMA	U-001	012345	Magelang	20-04-2014	Ruang 01&#10;SITI RAHMAWATI	U-002	012346	mAgELanG	2014/08/22	Ruang 02"></textarea>
             <button onclick="prosesExcel()" class="mt-2 bg-slate-900 hover:bg-slate-950 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all shadow-sm">Muat Kolom Excel</button>
         </div>
 
-        <!-- 3. PILIHAN CHECKLIST UNTUK PREP DATA TTL -->
         <div id="configSection" class="hidden mb-4 p-4 bg-slate-900 text-white rounded-xl border border-slate-800">
             <label class="block text-xs font-semibold text-amber-400 uppercase tracking-wider mb-3">Langkah 2: Centang Kolom yang Menyusun Data TTL (Tempat & Tanggal Lahir)</label>
-            <div id="checkboxContainer" class="flex flex-wrap gap-3 text-xs text-slate-200">
-                <!-- Checkbox dimuat dinamis via JS -->
-            </div>
+            <div id="checkboxContainer" class="flex flex-wrap gap-3 text-xs text-slate-200 mb-4">
+                </div>
             
-            <!-- PROGRESS BAR LOADING ANIMATION -->
-            <div id="progressBarContainer" class="hidden mt-4 pt-2 border-t border-slate-800">
+            <div id="progressBarContainer" class="hidden mt-2 pt-2 border-t border-slate-800">
                 <div class="flex justify-between text-[11px] text-slate-400 mb-1">
-                    <span>Memproses dan Merapikan Data...</span>
+                    <span>Memproses, Merapikan Data & Membuat QR Code...</span>
                     <span id="progressText">0%</span>
                 </div>
                 <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
@@ -169,44 +163,43 @@
                 </div>
             </div>
 
-            <button onclick="triggerGenerate()" id="btnGenerate" class="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-3 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 uppercase tracking-wider">
+            <button onclick="triggerGenerate()" id="btnGenerate" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-3 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 uppercase tracking-wider">
                 Bikin & Susun Kartu Otomatis ✨
             </button>
         </div>
 
-        <!-- 4. MENU SEARCH KHUSUS UNTUK CETAK KARTU SUSULAN (MUNCUL JIKA DATA READY) -->
-        <div id="searchSection" class="hidden p-3 bg-slate-100 border border-slate-200 rounded-xl flex items-center gap-3">
-            <div class="text-slate-500 shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/></svg>
+        <div id="filterSection" class="hidden p-4 bg-slate-100 border border-slate-200 rounded-xl grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="md:col-span-2">
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">🔎 Cetak Kartu Susulan (Pencarian Individu)</label>
+                <input type="text" id="txtSearch" oninput="jalankanFilterGlobal()" placeholder="Ketik Nama atau NISN siswa..." class="w-full bg-white text-xs p-2 border border-slate-300 rounded-lg focus:outline-none">
             </div>
-            <input type="text" id="txtSearch" oninput="filterKartu()" placeholder="Cetak Kartu Susulan? Ketik Nama atau NISN siswa di sini untuk memfilter individu..." class="w-full bg-white text-xs p-2 border border-slate-300 rounded-lg focus:outline-none focus:border-slate-950">
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">🏫 Filter Kloter per Kelas / Ruang</label>
+                <select id="selectFilterRuang" onchange="jalankanFilterGlobal()" class="w-full bg-white text-xs p-2 border border-slate-300 rounded-lg focus:outline-none">
+                    <option value="ALL">Tampilkan Semua Data</option>
+                </select>
+            </div>
         </div>
     </div>
 
-    <!-- PANEL TOMBOL UTAMA CETAK (HANYA MUNCUL DI LAYAR BILA KARTU READY) -->
     <div id="printButtonContainer" class="no-print hidden flex justify-center mb-6">
         <button onclick="window.print()" class="bg-slate-900 hover:bg-slate-950 text-white font-bold px-6 py-3 rounded-xl shadow-md transition-all flex items-center gap-2 text-xs uppercase tracking-wider">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4zm1 5a1 1 0 1 1 2 0 1 1 0 0 1-2 0m7 0a1 1 0 1 1 2 0 1 1 0 0 1-2 0M5 10v3a1 1 0 0 0 1 1h4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-3z"/></svg>
-            Cetak Dokumen Sekarang (A4)
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4zm1 5a1 1 0 1 1 2 0 1 1 0 0 1-2 0m7 0a1 1 0 1 1 2 0 1 1 0 0 1-2 0M5 10v3a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-3z"/></svg>
+            Cetak Dokumen Sekarang
         </button>
     </div>
 
-    <!-- ================= AREA OUTPUT UTAMA KARTU (AKAN DIPRINT) ================= -->
     <div id="printArea" class="max-w-4xl mx-auto">
-        <!-- Kartu ujian hasil perulangan JavaScript disisipkan di sini -->
-    </div>
+        </div>
 
-    <!-- Tombol Back To Top Melayang -->
     <button id="backToTop" onclick="scrollToTop()" class="no-print bg-slate-900 text-white p-3 rounded-full shadow-lg hover:bg-slate-800 transition-all">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 .5 .5"/></svg>
     </button>
 
-    <!-- ================= INTI LOGIC UTAMA JAVASCRIPT ================= -->
     <script>
         let headers = [];
         let dataSiswa = [];
 
-        // Deteksi Loading & Memori Browser Saat Halaman Dibuka pertama kali
         window.onload = function() {
             if(localStorage.getItem('setPemda')) {
                 document.getElementById('setPemda').value = localStorage.getItem('setPemda');
@@ -219,6 +212,7 @@
                 document.getElementById('setWatermarkFile').value = localStorage.getItem('setWatermarkFile');
                 document.getElementById('setFotoOpt').value = localStorage.getItem('setFotoOpt');
                 document.getElementById('setTema').value = localStorage.getItem('setTema');
+                document.getElementById('setKertas').value = localStorage.getItem('setKertas');
                 document.getElementById('setGrid').value = localStorage.getItem('setGrid');
                 document.getElementById('chkShowFoto').checked = localStorage.getItem('chkShowFoto') === 'true';
                 document.getElementById('chkShowTtd').checked = localStorage.getItem('chkShowTtd') === 'true';
@@ -238,27 +232,26 @@
             localStorage.setItem('setWatermarkFile', document.getElementById('setWatermarkFile').value);
             localStorage.setItem('setFotoOpt', document.getElementById('setFotoOpt').value);
             localStorage.setItem('setTema', document.getElementById('setTema').value);
+            localStorage.setItem('setKertas', document.getElementById('setKertas').value);
             localStorage.setItem('setGrid', document.getElementById('setGrid').value);
             localStorage.setItem('chkShowFoto', document.getElementById('chkShowFoto').checked);
             localStorage.setItem('chkShowTtd', document.getElementById('chkShowTtd').checked);
             localStorage.setItem('chkShowNoPeserta', document.getElementById('chkShowNoPeserta').checked);
             localStorage.setItem('chkShowRuang', document.getElementById('chkShowRuang').checked);
-            alert('Pengaturan sekolah berhasil dikunci & diingat oleh browser! ⭐');
+            alert('Pengaturan sekolah terkunci aman di memori browser! ⭐');
         }
 
         function resetSettings() {
-            if(confirm('Apakah Anda yakin ingin membersihkan seluruh setelan pengaturan sekolah?')) {
+            if(confirm('Reset semua pengaturan ke setelan pabrik?')) {
                 localStorage.clear();
                 location.reload();
             }
         }
 
         function toggleHelp() {
-            const modal = document.getElementById('helpModal');
-            modal.classList.toggle('hidden');
+            document.getElementById('helpModal').classList.toggle('hidden');
         }
 
-        // Membaca Kolom Teks Hasil Copy-Paste Excel
         function prosesExcel() {
             const rawText = document.getElementById('excelInput').value.trim();
             if (!rawText) return alert('Silahkan paste kolom data dari Excel terlebih dahulu!');
@@ -267,6 +260,8 @@
             headers = rows[0].map(h => h.trim());
             dataSiswa = [];
 
+            let setRuangUnik = new Set();
+
             for (let i = 1; i < rows.length; i++) {
                 if (rows[i].length === headers.length) {
                     let siswa = {};
@@ -274,15 +269,25 @@
                         siswa[header] = rows[i][index] ? rows[i][index].trim() : '';
                     });
                     dataSiswa.push(siswa);
+                    
+                    let r = siswa['Ruang'] || siswa['RUANG'] || siswa['Kelas'] || '';
+                    if(r) setRuangUnik.add(r);
                 }
             }
+
+            // Isi dropdown filter ruangan otomatis
+            const selectFilter = document.getElementById('selectFilterRuang');
+            selectFilter.innerHTML = '<option value="ALL">Tampilkan Semua Data</option>';
+            setRuangUnik.forEach(ruang => {
+                selectFilter.innerHTML += `<option value="${ruang.toLowerCase()}">${ruang}</option>`;
+            });
 
             const container = document.getElementById('checkboxContainer');
             container.innerHTML = '';
             headers.forEach(header => {
                 const isChecked = header.toLowerCase().includes('lahir') ? 'checked' : '';
                 container.innerHTML += `
-                    <label class="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 cursor-pointer hover:bg-slate-700">
+                    <label class="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 cursor-pointer hover:bg-slate-700 text-white">
                         <input type="checkbox" name="kolomGabung" value="${header}" ${isChecked} class="rounded text-amber-400 focus:ring-0">
                         <span>${header}</span>
                     </label>
@@ -292,28 +297,23 @@
             document.getElementById('configSection').classList.remove('hidden');
         }
 
-        // Smart Prepper: Konversi otomatis format tanggal angka menjadi teks bulan Indonesia
         function formatTanggalIndo(text) {
             if (!text) return '';
             const match = text.match(/(\d{1,4})[\/\-.](\d{1,2})[\/\-.](\d{1,4})/);
             if (!match) return text;
-
             let d, m, y;
             if (match[1].length === 4) { y = match[1]; m = parseInt(match[2]); d = match[3]; }
             else { d = match[1]; m = parseInt(match[2]); y = match[3]; }
-
             const bulanIndo = ["", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
             if (m >= 1 && m <= 12) return `${parseInt(d)} ${bulanIndo[m]} ${y}`;
             return text;
         }
 
-        // Smart Prepper: Mengubah huruf kapital awal kata pada Tempat Lahir & Nama
         function toTitleCase(str) {
             if (!str) return '';
             return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
         }
 
-        // Trigger loading bar estetik penanda pengerjaan massal berhasil
         function triggerGenerate() {
             document.getElementById('progressBarContainer').classList.remove('hidden');
             let progress = 0;
@@ -330,10 +330,9 @@
                     document.getElementById('progressBarContainer').classList.add('hidden');
                     bar.style.width = '0%';
                 }
-            }, 150);
+            }, 100);
         }
 
-        // Fungsi Inti Merakit Desain & Komponen Kartu ke Layar
         function generateKartu() {
             const txtPemda = document.getElementById('setPemda').value;
             const txtSekolah = document.getElementById('setSekolah').value;
@@ -345,6 +344,7 @@
             const txtWatermarkFile = document.getElementById('setWatermarkFile').value;
             const optFoto = document.getElementById('setFotoOpt').value;
             const tema = document.getElementById('setTema').value;
+            const jnsKertas = document.getElementById('setKertas').value;
             const limitGrid = parseInt(document.getElementById('setGrid').value);
 
             const showFoto = document.getElementById('chkShowFoto').checked;
@@ -358,18 +358,15 @@
             const printArea = document.getElementById('printArea');
             printArea.innerHTML = '';
 
-            // Penentuan skema palet warna tema pastel ceria anak SD
             let colorSchema = { border: 'border-teal-400', badge: 'bg-teal-50 text-teal-800 border-teal-200', textRuang: 'text-teal-700' };
-            if (tema === 'sky') {
-                colorSchema = { border: 'border-sky-400', badge: 'bg-sky-50 text-sky-800 border-sky-200', textRuang: 'text-sky-700' };
-            } else if (tema === 'amber') {
-                colorSchema = { border: 'border-amber-400', badge: 'bg-amber-50 text-amber-800 border-amber-200', textRuang: 'text-amber-700' };
-            }
+            if (tema === 'sky') colorSchema = { border: 'border-sky-400', badge: 'bg-sky-50 text-sky-800 border-sky-200', textRuang: 'text-sky-700' };
+            if (tema === 'amber') colorSchema = { border: 'border-amber-400', badge: 'bg-amber-50 text-amber-800 border-amber-200', textRuang: 'text-amber-700' };
 
-            let currentGridHTML = '';
-            
+            let currentPageHTML = '';
+            let cardsInPage = 0;
+            let pageClass = jnsKertas === 'f4' ? 'paper-f4' : 'paper-a4';
+
             dataSiswa.forEach((siswa, index) => {
-                // Proses gabung Tempat & Tanggal Lahir + Prepper rapi
                 let gabunganTTL = kolomDipilih.map(kolom => {
                     let isi = siswa[kolom] || '';
                     if (kolom.toLowerCase().includes('tempat')) return toTitleCase(isi);
@@ -381,60 +378,47 @@
                 let ruangSiswa = siswa['Ruang'] || siswa['RUANG'] || siswa['Kelas'] || '-';
                 let noPeserta = siswa['No Peserta'] || siswa['NO PESERTA'] || siswa['Nomor'] || '-';
 
-                // Auto-Shrink Text: Perkecil huruf kalau nama siswa kepanjangan (> 22 huruf)
                 let nameFontSize = namaSiswa.length > 22 ? 'text-[10px] leading-tight' : 'text-[12px] font-bold';
 
-                // Komponen Logo Sekolah
                 let logoHTML = `<div class="w-9 h-9 bg-slate-900 text-white rounded-lg flex items-center justify-center text-[9px] font-black shrink-0 text-center leading-none">SDN</div>`;
-                if (txtLogoFile.trim() !== '') {
-                    logoHTML = `<img src="aset-sekolah/${txtLogoFile}" class="w-9 h-9 object-contain shrink-0" alt="Logo">`;
-                }
+                if (txtLogoFile.trim() !== '') logoHTML = `<img src="aset-sekolah/${txtLogoFile}" class="w-9 h-9 object-contain shrink-0" alt="Logo">`;
 
-                // Komponen Watermark Transparan di Tengah
                 let watermarkHTML = '';
-                if (txtWatermarkFile.trim() !== '') {
-                    watermarkHTML = `<img src="aset-sekolah/${txtWatermarkFile}" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-28 h-28 object-contain opacity-[0.06] pointer-events-none" alt="WM">`;
-                }
+                if (txtWatermarkFile.trim() !== '') watermarkHTML = `<img src="aset-sekolah/${txtWatermarkFile}" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-28 h-28 object-contain opacity-[0.05] pointer-events-none" alt="WM">`;
 
-                // Komponen Foto Siswa otomatis terpanggil via NISN.jpg
                 let fotoHTML = '';
                 if (showFoto) {
                     if (optFoto === 'digital_nisn' && nisnSiswa !== '-') {
-                        fotoHTML = `<img src="foto-siswa/${nisnSiswa}.jpg" onerror="this.onerror=null; this.src='https://via.placeholder.com/120x140?text=3x4'" class="w-12 h-15 border border-slate-300 object-cover rounded shadow-sm z-10 bg-white" alt="Foto">`;
+                        fotoHTML = `<img src="foto-siswa/${nisnSiswa}.jpg" onerror="this.onerror=null; this.src='https://via.placeholder.com/120x140?text=3x4'" class="w-11 h-14 border border-slate-300 object-cover rounded shadow-sm z-10 bg-white">`;
                     } else {
-                        fotoHTML = `<div class="w-12 h-15 border border-slate-300 bg-slate-50 flex items-center justify-center rounded text-[8px] text-slate-400 font-medium z-10">Foto 3x4</div>`;
+                        fotoHTML = `<div class="w-11 h-14 border border-slate-300 bg-slate-50 flex items-center justify-center rounded text-[8px] text-slate-400 font-medium z-10">Foto 3x4</div>`;
                     }
                 }
 
-                // Komponen TTD + Stempel Kepala Sekolah
-                let ttdHTML = `<div class="h-6"></div>`;
+                let ttdHTML = `<div class="h-5"></div>`;
                 if (showTtd && txtTtdFile.trim() !== '') {
-                    ttdHTML = `<div class="h-6 relative flex justify-center"><img src="aset-sekolah/${txtTtdFile}" class="absolute -top-2 h-10 object-contain mix-blend-multiply" alt="TTD"></div>`;
-                } else if (showTtd) {
-                    ttdHTML = `<div class="h-6"></div>`;
+                    ttdHTML = `<div class="h-5 relative flex justify-center"><img src="aset-sekolah/${txtTtdFile}" class="absolute -top-3 h-9 object-contain mix-blend-multiply"></div>`;
                 }
 
-                // RACIKAN KARTU UTUH (Tinggi Dikunci 280px pas A4)
+                // MERAKIT TEMPLATE KARTU (Opsi 3: Berwarna, Renggang)
                 const kartuHTML = `
-                    <div data-identity="${namaSiswa.toLowerCase()} ${nisnSiswa}" class="card-element bg-white border-2 ${colorSchema.border} rounded-xl p-4 shadow-sm flex flex-col justify-between h-[280px] w-full relative overflow-hidden bg-dot-grid card-container">
+                    <div data-identity="${namaSiswa.toLowerCase()} ${nisnSiswa}" data-ruang="${ruangSiswa.toLowerCase()}" class="card-element bg-white border-2 ${colorSchema.border} rounded-xl p-4 shadow-sm flex flex-col justify-between h-[270px] w-full relative overflow-hidden card-container">
                         ${watermarkHTML}
                         
-                        <!-- KOP RATU TENGAH CENTER -->
-                        <div class="flex items-center gap-3 border-b-2 border-slate-800 pb-1.5 relative z-10">
+                        <div class="flex items-center gap-2 border-b-2 border-slate-800 pb-1.5 relative z-10">
                             ${logoHTML}
-                            <div class="text-center flex-grow pr-6">
+                            <div class="text-center flex-grow">
                                 <h3 class="text-[8px] font-bold uppercase tracking-wider text-slate-500 leading-none">${txtPemda}</h3>
                                 <h2 class="text-[11px] font-extrabold uppercase text-slate-900 leading-tight mt-0.5">${txtSekolah}</h2>
-                                <p class="text-[7.5px] text-slate-400 font-medium leading-none mt-0.5 truncate max-w-[260px] mx-auto">${txtAlamat}</p>
+                                <p class="text-[7.5px] text-slate-400 font-medium leading-none mt-0.5 truncate max-w-[220px] mx-auto">${txtAlamat}</p>
                             </div>
+                            <div id="qr_${index}" class="w-9 h-9 bg-white p-0.5 border border-slate-200 rounded shrink-0 flex items-center justify-center"></div>
                         </div>
 
-                        <!-- BADGE JUDUL -->
-                        <div class="text-center my-1 relative z-10">
+                        <div class="text-center my-0.5 relative z-10">
                             <span class="${colorSchema.badge} text-[8px] font-extrabold px-3 py-0.5 rounded-full uppercase tracking-widest border">Kartu Peserta Ujian</span>
                         </div>
 
-                        <!-- INFORMASI DATA SISWA -->
                         <div class="grid grid-cols-12 gap-x-1 gap-y-0.5 text-[11px] text-slate-700 flex-grow px-1 mt-1 relative z-10">
                             ${showNoPeserta ? `
                                 <div class="col-span-3 font-medium text-slate-400">No. Peserta</div>
@@ -456,11 +440,10 @@
                             ` : ''}
                         </div>
 
-                        <!-- PIHAK SUB-FOOTER -->
-                        <div class="flex justify-between items-end mt-1 pt-1.5 border-t border-dashed border-slate-200 relative z-10">
+                        <div class="flex justify-between items-end mt-1 pt-1 border-t border-dashed border-slate-200 relative z-10">
                             ${fotoHTML}
                             <div class="text-center text-[9px] text-slate-800 pr-1">
-                                <p class="text-[8px] text-slate-400">Kepala Sekolah,</p>
+                                <p class="text-[7.5px] text-slate-400">Kepala Sekolah,</p>
                                 ${ttdHTML}
                                 <p class="font-bold underline leading-none">${toTitleCase(txtKepsek)}</p>
                                 <p class="text-[7px] text-slate-400 mt-0.5">NIP. ${txtNip}</p>
@@ -469,53 +452,79 @@
                     </div>
                 `;
 
-                // Penentuan baris grid berdasarkan kapasitas kapasitas lembar A4 terpilih
-                let gridCols = limitGrid === 2 ? 'grid-cols-1' : 'grid-cols-2';
-
-                if (index % limitGrid === 0) {
-                    currentGridHTML = `<div class="grid ${gridCols} gap-4 page-break mb-8">`;
+                // Buka wadah halaman baru (Grid Berjarak dengan Garis Gunting)
+                if (cardsInPage === 0) {
+                    let gridCols = limitGrid === 2 ? 'grid-cols-1 max-w-md mx-auto py-10' : 'grid-cols-2';
+                    currentPageHTML = `<div class="page-container ${pageClass} page-break relative grid ${gridCols} gap-8 p-8 items-center content-center bg-white border border-slate-200 shadow-sm mb-8 rounded-2xl">
+                                        ${limitGrid === 4 ? '<div class="no-print cutting-line-v"></div><div class="no-print cutting-line-h"></div>' : ''}`;
                 }
 
-                currentGridHTML += kartuHTML;
+                currentPageHTML += kartuHTML;
+                cardsInPage++;
 
-                if ((index + 1) % limitGrid === 0 || index === dataSiswa.length - 1) {
-                    currentGridHTML += `</div>`;
-                    printArea.innerHTML += currentGridHTML;
+                // Tutup halaman jika kuota lembar terpenuhi ATAU data terakhir
+                if (cardsInPage === limitGrid || index === dataSiswa.length - 1) {
+                    currentPageHTML += `</div>`;
+                    printArea.innerHTML += currentPageHTML;
+                    cardsInPage = 0;
                 }
             });
 
-            document.getElementById('searchSection').classList.remove('hidden');
+            // GENERATE INSTAN QR CODE MENGGUNAKAN LIBRARY
+            dataSiswa.forEach((siswa, index) => {
+                let nisnSiswa = siswa['NISN'] || siswa['Nisn'] || siswa['NIS'] || '000000';
+                let namaSiswa = siswa['Nama'] || siswa['NAMA'] || 'Siswa';
+                let r = siswa['Ruang'] || siswa['RUANG'] || 'Ruang';
+                
+                let qrContainer = document.getElementById(`qr_${index}`);
+                if (qrContainer) {
+                    new QRCode(qrContainer, {
+                        text: `SDN 2 Senden - ${namaSiswa} - ${nisnSiswa} - ${r}`,
+                        width: 32,
+                        height: 32,
+                        colorDark : "#0f172a",
+                        colorLight : "#ffffff",
+                        correctLevel : QRCode.CorrectLevel.M
+                    });
+                }
+            });
+
+            document.getElementById('filterSection').classList.remove('hidden');
             document.getElementById('printButtonContainer').classList.remove('hidden');
         }
 
-        // Fitur Cetak Susulan: Memfilter kartu secara individu berdasarkan input pencarian nama/NISN
-        function filterKartu() {
-            const query = document.getElementById('txtSearch').value.toLowerCase().trim();
+        // FILTER GABUNGAN (Deteksi Nama + Dropdown Ruang sekaligus)
+        function jalankanFilterGlobal() {
+            const searchQuery = document.getElementById('txtSearch').value.toLowerCase().trim();
+            const ruangQuery = document.getElementById('selectFilterRuang').value.toLowerCase().trim();
             const cards = document.querySelectorAll('.card-element');
+            const pageContainers = document.querySelectorAll('.page-container');
 
             cards.forEach(card => {
                 const identity = card.getAttribute('data-identity');
-                if (identity.includes(query)) {
-                    card.style.display = 'flex'; // Munculkan kartu jika cocok
+                const ruang = card.getAttribute('data-ruang');
+
+                const matchSearch = identity.includes(searchQuery);
+                const matchRuang = (ruangQuery === 'all' || ruang === ruangQuery);
+
+                if (matchSearch && matchRuang) {
+                    card.style.opacity = '1';
+                    card.style.pointerEvents = 'auto';
+                    card.style.visibility = 'visible';
                 } else {
-                    card.style.display = 'none';  // Sembunyikan jika tidak cocok
+                    card.style.opacity = '0.08'; // Di layar dibuat pudar, saat diprint otomatis rapi
+                    card.style.pointerEvents = 'none';
                 }
             });
         }
 
-        // Kontrol Tombol Melayang Back To Top
+        // Kontrol Button Melayang Back to Top
         const btt = document.getElementById('backToTop');
         window.onscroll = function() {
-            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
-                btt.classList.add('show');
-            } else {
-                btt.classList.remove('show');
-            }
+            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) btt.classList.add('show');
+            else btt.classList.remove('show');
         };
-
-        function scrollToTop() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
     </script>
 </body>
 </html>
