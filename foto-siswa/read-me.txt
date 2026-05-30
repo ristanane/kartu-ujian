@@ -1,0 +1,1 @@
+Taruh semua foto siswa di folder ini dengan nama file berupa NISN mereka. Format harus .jpg (Contoh: 012345.jpg)
